@@ -71,5 +71,5 @@ void descStack(stack<Node> * neco) {
         vector<int>  lcl = (*neco).top().getCurrentContent();
         printVector( &lcl);
     }
-
+ 
 }
