@@ -63,10 +63,20 @@ public:
 
     /**
      * Inspects whether a given item is inside the bag (leaf)
+     * Part of 'binary vector <-> bitwise' encapsulation
      * @param index index of the item
      * @return true if the item is inside of the bag, false otherwise
      */
-    bool isItemInside(int index);
+    bool isItemAt(int index);
+
+    /**
+     * Sets an item to be or not to be inside the bag
+     * Part of 'binary vector <-> bitwise' encapsulation
+     * @param index index of the item
+     * @param itemPresent a bool value setting the item to be not to be inside the bag.
+     * @return true if the item is inside of the bag, false otherwise
+     */
+    void setItemAt(int index, bool itemPresent);
 
     /**
      * Let's you know which index is gonna be expanded next time.
