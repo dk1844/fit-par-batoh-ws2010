@@ -35,24 +35,38 @@ public:
     /**
      * Expanding a node into 2 child nodes.
      * Call it as expand ( &sem1, &sem2, &vektor_values, &vektor_volumes)
-     * @param n0 first child node
-     * @param n1 second child node
-     * @param values vector of items' values
+     * @param a first child node
+     * @param b second child node
      * @param volumes vector of items' volumes
      */
-    void expand(Node * a, Node * b, vector<float> * values, vector<float> * volume);
+    void expand(Node * a, Node * b, vector<float> * volumes);
 
     /**
      * Let's you know what the current value of the bag content is.
      * @return current value of the bag content
      */
-    float getCurrentValue();
+    //float getCurrentValue();
 
     /**
      * Let's you know what the current volume of the bag content is.
      * @return current volume of the bag content
      */
     float getCurrentVolume();
+    
+    /**
+     * calculates bag content's value
+     * @param allItemsCount how many item there are in general (not only in the bag)
+     * @param values vector of items' values
+     * @return total value of items
+     */
+    float calculateValue(int allItemsCount, vector<float> * values);
+
+    /**
+     * Inspects whether a given item is inside the bag (leaf)
+     * @param index index of the item
+     * @return true if the item is inside of the bag, false otherwise
+     */
+    bool isItemInside(int index);
 
     /**
      * Let's you know which index is gonna be expanded next time.
@@ -79,7 +93,6 @@ public:
     void print();
 
 private:
-    float _current_value;
     float _current_volume; //volume taken
     int _current_position; // 0..n-1
     vector<int> _current_content;
