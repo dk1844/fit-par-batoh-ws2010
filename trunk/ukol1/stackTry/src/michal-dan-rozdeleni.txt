@@ -1,0 +1,6 @@
+vector<int> -> bity [michal]
+
+expand nebude pocitat current value, ale bude tam fce, ktera to nakonec spocte.
+node nemusi mit private promennou value vubec. [d]
+
+resitelem bude fce misto praseni do mainu :) [m]
