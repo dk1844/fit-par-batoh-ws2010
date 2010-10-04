@@ -3,6 +3,13 @@
  * Author: Daniel Kavan
  *
  * Created on 30. září 2010, 18:29
+ *
+ *
+ *
+ * **PERKS**
+ *
+ *  * the current value of a bag used to be calculated when expanding (just as volume is).
+ *    This has been changed, bc. we can save the time for computing value for variations of contents that are cut by the BB algorithm
  */
 
 #include <cstdlib>
@@ -117,7 +124,7 @@ int main(int argc, char** argv) {
     float bagSize;
     int items_count;
     stack<Node> stack1;
-    //stack<int> stack1;
+    
 
     loadDataFromFile(argv[1], &items_count, &volumes, &values, &bagSize);
     
@@ -134,20 +141,22 @@ int main(int argc, char** argv) {
 
     //v pripade par. zpracovani zde muzeme expandovat, dokud nemame dost Nodu pro vsechny procesory
     //ted ne, protoze mam jen single thread :)
-
+    
 
     Node thisProcessorNode = root;
     stack1.push(thisProcessorNode);
     
 
     Node best; // containing the right-now best leaf node.
+    float bestValue = 0; 
+
     while (!stack1.empty()) {
         Node akt = stack1.top();
         stack1.pop(); //remove top
         if(akt.isExpandable()) {
             Node a;
             Node b;
-            akt.expand(&a, &b, &values, &volumes);
+            akt.expand(&a, &b, &volumes);
 
             /*debug - start*/
             cout << "---inner node---" << endl;
@@ -163,8 +172,6 @@ int main(int argc, char** argv) {
             } else {
                 stack1.push(b);
             }
-
-
             
         } else {
         // tree leaf
@@ -172,10 +179,12 @@ int main(int argc, char** argv) {
             akt.print();
 
             //je akt lepsim resenim?
-            if(best.getCurrentValue() < akt.getCurrentValue()) {
+            float aktValue = akt.calculateValue(items_count, &values);
+            if(bestValue <= aktValue) { //if equal, doent matter, just making sure, when e.g. the bag is too small and the solution si the bag with <0,0, .. ,0,0>
                 best = akt;
+                bestValue = aktValue;
             }
-            cout << "DEBUG: Current best value = " << best.getCurrentValue() << endl;
+            cout << "DEBUG: Current best value = " << bestValue << endl;
         }
 
     } //while stack !empty end
@@ -184,8 +193,9 @@ int main(int argc, char** argv) {
 
     cout << endl << "OK, here it is, the solution seems to be:" << endl;
     best.print();
+    cout << "with the best value of " << bestValue << "." <<endl;
 
-
+    
 
     return 0;
 }
