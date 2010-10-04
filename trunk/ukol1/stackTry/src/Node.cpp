@@ -26,22 +26,21 @@ Node::Node(int count, int position, float value, float volume) {
 }
 
 void Node::expand(Node * n0, Node * n1, vector<float> * volumes) {
-    //oriznout zleva
-    vector<int> vect_0 = this->_current_content;
-    vect_0[this->_current_position] = 0;
 
-    (*n0)._current_content = vect_0;
+    // no change part
+    (*n0)._current_content = this->_current_content;
+    (*n0).setItemAt(this->_current_position, false);
     (*n0)._current_position = this->_current_position + 1;
     (*n0)._current_volume = this->_current_volume; // nothing added
 
+    
+    //adding an item part
+    (*n1)._current_content = this->_current_content; //same content
+    (*n1).setItemAt(this->_current_position, true); //plus add upcoming item
 
-    vector<int> vect_1 = this->_current_content;
-    vect_1[this->_current_position] = 1;
-
-    (*n1)._current_content = vect_1;
     (*n1)._current_position = this->_current_position + 1;
-    (*n1)._current_volume = this->_current_volume + (*volumes)[this->_current_position];
-    ; // volume added
+    (*n1)._current_volume = this->_current_volume + (*volumes)[this->_current_position]; //volume added
+     
 }
 
 float Node::getCurrentVolume() {
@@ -62,18 +61,30 @@ bool Node::isExpandable() {
     return (vector_size > (this->_current_position)); // 2 items >  #1  ->>  expandable! bc. -> <x,0>,<x,1>..
 }
 
-bool Node::isItemInside(int index) {
+
+bool Node::isItemAt(int index) {
     // the reason this is implemeted is to encapsulate the way items are represented.
     // changing binary vector <-> bitwise field would only require this method to change while the rest stays the same :)
     
     return ((this->getCurrentContent())[index] == 1);
 }
 
+void Node::setItemAt(int index, bool itemPresent) {
+    // same reasoning as above
+    if(itemPresent) { //1
+        (this->_current_content)[index] = 1;
+    } else {
+        (this->_current_content)[index] = 0;
+    }
+
+}
+
+
 float Node::calculateValue(int allItemsCount, vector<float> * values) {
     float sumValue = 0;
 
     for (int i=0; i < allItemsCount; i++) {
-        if (this->isItemInside(i)) {
+        if (this->isItemAt(i)) {
             sumValue = sumValue + (*values)[i];
         }
     }
