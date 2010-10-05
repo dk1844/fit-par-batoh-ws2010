@@ -195,6 +195,32 @@ int main(int argc, char** argv) {
     best.print();
     cout << "with the best value of " << bestValue << "." <<endl;
 
+
+
+
+
+
+    cout << endl << "---- TESTING AREA ----" << endl;
+
+    int bint = 7;
+    bool bbool = true;
+    int cnt = 2352;
+    vector<int> vint(cnt, 2);
+    vector<bool> vbool(cnt, false);
+    vbool[1] = true;
+    vint[3] = 12;
+    vbool[32] = true;
+
+    //bitfield bbit;
+
+
+    cout << "bool size = " << sizeof (bbool) << endl;
+    cout << "int size = " << sizeof (bint) << endl;
+    cout << "vector<bool> size = " << sizeof (vint) << " - its like " << 8.0*sizeof(vint)/cnt << " bits per an int" << endl;
+    cout << "vector<int> size = " << sizeof (vbool) << " - its like " << 8.0*sizeof(vbool)/cnt << " bits per a bool" << endl;
+
+    cout << vint.size() << endl;
+
     
 
     return 0;
