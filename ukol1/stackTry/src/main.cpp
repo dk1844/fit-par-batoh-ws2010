@@ -1,4 +1,4 @@
-/* 
+/*
  * File:   main.cpp
  * Author: Daniel Kavan
  *
@@ -10,6 +10,11 @@
  *
  *  * the current value of a bag used to be calculated when expanding (just as volume is).
  *    This has been changed, bc. we can save the time for computing value for variations of contents that are cut by the BB algorithm
+ *  * Old way, how we stored nodes in stack was implemented using int data type.
+ *    We change it to bit representation -> we use char instead of int and use every bit of char to
+ *    signify, if the item is presented or not
+ *    We save a lot of memory ->    int:                4bytes/item
+ *                                  char(with bit rep.) 1bit/item
  */
 
 #include <cstdlib>
@@ -55,7 +60,7 @@ void loadDataFromFile(char * filename, int * items_cnt, vector<float> * volume, 
     ifstream fp_in; // declarations of stream fp_in
     fp_in.open(filename, ios::in); // open the streams
 
-
+    //cout << fp_in << endl;
     if (!fp_in) {
         cerr << "File could not be opened" << endl;
         exit(1);
@@ -64,13 +69,7 @@ void loadDataFromFile(char * filename, int * items_cnt, vector<float> * volume, 
     int count;
     float float_val;
 
-    fp_in >> float_val; // input from file pointer or standard input
-    if (!fp_in.good()) {
-        cerr << "Wrong format" << endl;
-        exit(1);
-    }
-    (*bagSize) = float_val;
-
+    // get number of intems
     fp_in >> count; // input from file pointer or standard input
     if (!fp_in.good()) {
         cerr << "Wrong format" << endl;
@@ -78,6 +77,17 @@ void loadDataFromFile(char * filename, int * items_cnt, vector<float> * volume, 
     }
 
     (*items_cnt) = count;
+
+    //get size of back
+    fp_in >> float_val; // input from file pointer or standard input
+    if (!fp_in.good()) {
+        cerr << "Wrong format" << endl;
+        exit(1);
+    }
+
+    (*bagSize) = float_val;
+
+    
 
     (*volume).resize(count);
     (*value).resize(count);
@@ -90,14 +100,14 @@ void loadDataFromFile(char * filename, int * items_cnt, vector<float> * volume, 
             cerr << "Wrong format inside" << endl;
             exit(1);
         }
-        (*value)[i] = float_val;
+        (*volume)[i] = float_val;
 
         fp_in >> float_val;
         if (!fp_in.good()) {
             cerr << "Wrong format inside" << endl;
             exit(1);
         }
-        (*volume)[i] = float_val;
+        (*value)[i] = float_val;
 
     }
 
@@ -124,10 +134,10 @@ int main(int argc, char** argv) {
     float bagSize;
     int items_count;
     stack<Node> stack1;
-    
+
 
     loadDataFromFile(argv[1], &items_count, &volumes, &values, &bagSize);
-    
+
     //debug only
     cout << "Loaded bag size = " << bagSize << endl;
     cout << "Loaded items count = " << items_count << endl;
@@ -137,18 +147,18 @@ int main(int argc, char** argv) {
 
 
     Node root(items_count);
-    
+
 
     //v pripade par. zpracovani zde muzeme expandovat, dokud nemame dost Nodu pro vsechny procesory
     //ted ne, protoze mam jen single thread :)
-    
+
 
     Node thisProcessorNode = root;
     stack1.push(thisProcessorNode);
-    
+
 
     Node best; // containing the right-now best leaf node.
-    float bestValue = 0; 
+    float bestValue = 0;
 
     while (!stack1.empty()) {
         Node akt = stack1.top();
@@ -172,7 +182,7 @@ int main(int argc, char** argv) {
             } else {
                 stack1.push(b);
             }
-            
+
         } else {
         // tree leaf
             cout << "========leaf======" << endl;
@@ -195,34 +205,8 @@ int main(int argc, char** argv) {
     best.print();
     cout << "with the best value of " << bestValue << "." <<endl;
 
-
-
-
-
-
-    cout << endl << "---- TESTING AREA ----" << endl;
-
-    int bint = 7;
-    bool bbool = true;
-    int cnt = 2352;
-    vector<int> vint(cnt, 2);
-    vector<bool> vbool(cnt, false);
-    vbool[1] = true;
-    vint[3] = 12;
-    vbool[32] = true;
-
-    //bitfield bbit;
-
-
-    cout << "bool size = " << sizeof (bbool) << endl;
-    cout << "int size = " << sizeof (bint) << endl;
-    cout << "vector<bool> size = " << sizeof (vint) << " - its like " << 8.0*sizeof(vint)/cnt << " bits per an int" << endl;
-    cout << "vector<int> size = " << sizeof (vbool) << " - its like " << 8.0*sizeof(vbool)/cnt << " bits per a bool" << endl;
-
-    cout << vint.size() << endl;
-
-    
+    printVector(&volumes, "Volume");
+    printVector(&values);
 
     return 0;
 }
-

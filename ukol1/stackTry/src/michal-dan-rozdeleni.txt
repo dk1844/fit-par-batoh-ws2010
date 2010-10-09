@@ -1,4 +1,4 @@
-vector<int> -> bity [michal]
+vector<int> -> bity [michal] - na svn jsem hodil zatim popis reseni...
 
 expand nebude pocitat current value, ale bude tam fce, ktera to nakonec spocte.
 node nemusi mit private promennou value vubec. [dan]
