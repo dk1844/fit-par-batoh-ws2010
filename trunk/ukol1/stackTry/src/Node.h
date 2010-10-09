@@ -1,4 +1,4 @@
-/* 
+/*
  * File:   Node.h
  * Author: Daniel
  *
@@ -14,7 +14,7 @@
 using namespace std;
 
 #ifndef NODE_H
-#define	NODE_H
+#define NODE_H
 
 class Node {
 public:
@@ -28,7 +28,7 @@ public:
      * @param value current value of the content (default:0)
      * @param volume current volume of the content (default:0)
      */
-    Node(int count, int position = 0, float value = 0.0, float volume = 0.0);
+    Node(int count, int position = 0, float volume = 0.0);
 
     virtual ~Node();
 
@@ -52,7 +52,7 @@ public:
      * @return current volume of the bag content
      */
     float getCurrentVolume();
-    
+
     /**
      * calculates bag content's value
      * @param allItemsCount how many item there are in general (not only in the bag)
@@ -88,7 +88,7 @@ public:
      * Gives you the "binary" vector representing the content of the bag
      * @return vector what's-inside
      */
-    vector<int> getCurrentContent();
+    vector<char> getCurrentContent();
 
     /**
      * Describes whether this node can be further expanded
@@ -102,13 +102,15 @@ public:
      */
     void print();
 
+
+    char Node::getMask(int index);
 private:
     float _current_volume; //volume taken
     int _current_position; // 0..n-1
-    vector<int> _current_content;
-
+    vector<char> _current_content;
+    int _int_char_size;
+    int _items_count;
 
 };
 
-#endif	/* NODE_H */
-
+#endif  /* NODE_H */
