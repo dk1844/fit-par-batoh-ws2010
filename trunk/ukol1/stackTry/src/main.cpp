@@ -206,7 +206,7 @@ int main(int argc, char** argv) {
     cout << "with the best value of " << bestValue << "." <<endl;
 
     printVector(&volumes, "Volume");
-    printVector(&values);
+    printVector(&values, "Values");
 
     return 0;
 }
