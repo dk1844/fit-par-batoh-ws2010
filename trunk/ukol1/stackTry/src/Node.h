@@ -103,7 +103,7 @@ public:
     void print();
 
 
-    char Node::getMask(int index);
+    char getMask(int index);
 private:
     float _current_volume; //volume taken
     int _current_position; // 0..n-1
