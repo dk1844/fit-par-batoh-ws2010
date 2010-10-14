@@ -1,0 +1,6 @@
+- diagram komunikace procesu [m]
+- main to fc [m]
+- deleni prace init [d]
+- deleni zasobniku za behu [tbd m, konzulatace mejlem]
+- aduv [d]
+- sber [d]

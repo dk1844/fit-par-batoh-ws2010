@@ -1,0 +1,14 @@
+100 INIT: init prace
+
+
+200 REQ: zadost o praci
+202 ANS: posilam cast zasobniku (praci)
+203 ANS: neni prace
+
+
+300: pesek a dal TBD 
+
+
+400: Ukoncuji
+401: "Send me your best"
+
