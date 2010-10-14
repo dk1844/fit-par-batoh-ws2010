@@ -1,0 +1,8 @@
+vector<int> -> bity [michal] - na svn jsem hodil zatim popis reseni...
+
+expand nebude pocitat current value, ale bude tam fce, ktera to nakonec spocte.
+node nemusi mit private promennou value vubec. [dan]
+ * myslim, ze udelano a funkcni, pls o kontrolu.
+ * na zacatku main.cpp jsem udelal "sekci" PERKS, kam muzem psat vychytavky, ktery jsme udelali, abychom meli supr sekvencni kod :)
+
+resitelem bude fce misto praseni do mainu :) [michal]
