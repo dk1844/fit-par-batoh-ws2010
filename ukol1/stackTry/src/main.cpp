@@ -48,7 +48,6 @@ template<class T> void printVector(vector<T> * vect1, char * name = "") {
     cout << endl;
 }
 
-
 /**
  * Loads data from filename into vectors volume and value
  * @param filename name of the file loading
@@ -87,7 +86,7 @@ void loadDataFromFile(char * filename, int * items_cnt, vector<float> * volume, 
 
     (*bagSize) = float_val;
 
-    
+
 
     (*volume).resize(count);
     (*value).resize(count);
@@ -120,39 +119,89 @@ void loadDataFromFile(char * filename, int * items_cnt, vector<float> * volume, 
 
     fp_in.close(); // close the streams
 }
+    /**
+     * 
+     * @param bestValue pointer to value of best actual solution
+     * @param root - node, which will be solved
+     * @param best - best node we found
+     * @param bagSize - pointer to bagSize
+     * @param volumes - pointer to volumes vector
+     * @param values - pointer to values vector
+     * @param stack1 - pointer to stack 0 we will add new nodes using this
+     * @param items_count - # of items
+     */
 
+void procedeNode(float * bestValue, Node root,Node * best, float * bagSize, vector<float> * volumes, vector<float> * values, stack<Node> * stack1, int items_count) {
+     if (root.isExpandable()) {
+            Node a;
+            Node b;
+            root.expand(&a, &b, volumes);
+
+            /*debug - start*/
+            cout << "---inner node---" << endl;
+            root.print();
+            /*debug - end*/
+
+            // predmet nepridan, takze a je urcite perspektivni.
+            (*stack1).push(a);
+
+            //b se jeste vejde?
+         
+            if (b.getCurrentVolume() > (*bagSize) ){
+                cout << "DEBUG: Volume of " << b.getCurrentVolume() << " would be too much, cutting BB-branch" << endl;
+            } else {
+                (*stack1).push(b);
+            }
+
+        } else {
+            // tree leaf
+            cout << "========leaf======" << endl;
+            root.print();
+
+            //je akt lepsim resenim?
+            float aktValue = root.calculateValue(items_count, values);
+            if ((*bestValue) <= aktValue) { //if equal, doent matter, just making sure, when e.g. the bag is too small and the solution si the bag with <0,0, .. ,0,0>
+                (*best) = root;
+                (*bestValue) = aktValue;
+            }
+            cout << "DEBUG: Current best value = " << (*bestValue) << endl;
+        }
+
+}
 
 int main(int argc, char** argv) {
+   //check arguments
     if (argc != 2) {
         cerr << "# arguments found = " << (argc - 1) << endl;
         cerr << "USAGE : \"" << argv[0] << " <filename>" << endl;
         return 3;
     }
-
+    
+    //declare vectors for input data
     vector<float> volumes;
     vector<float> values;
     float bagSize;
     int items_count;
     stack<Node> stack1;
 
+    //controls for paralel program
+    //this falg will be used to hadle ADUV
+    bool data_given_to_next = false;
+    //PID of next donator of data. Need to be init after creating of proceses
+    int donator_next;
 
+    //load source date from file
     loadDataFromFile(argv[1], &items_count, &volumes, &values, &bagSize);
 
     //debug only
-    cout << "Loaded bag size = " << bagSize << endl;
-    cout << "Loaded items count = " << items_count << endl;
-    printVector(&volumes, "Volume");
-    printVector(&values);
+//    cout << "Loaded bag size = " << bagSize << endl;
+//    cout << "Loaded items count = " << items_count << endl;
+//    printVector(&volumes, "Volume");
+//    printVector(&values);
 
-
+    //we can prepare data for other proceses here
 
     Node root(items_count);
-
-
-    //v pripade par. zpracovani zde muzeme expandovat, dokud nemame dost Nodu pro vsechny procesory
-    //ted ne, protoze mam jen single thread :)
-
-
     Node thisProcessorNode = root;
     stack1.push(thisProcessorNode);
 
@@ -163,39 +212,8 @@ int main(int argc, char** argv) {
     while (!stack1.empty()) {
         Node akt = stack1.top();
         stack1.pop(); //remove top
-        if(akt.isExpandable()) {
-            Node a;
-            Node b;
-            akt.expand(&a, &b, &volumes);
 
-            /*debug - start*/
-            cout << "---inner node---" << endl;
-            akt.print();
-            /*debug - end*/
-
-            // predmet nepridan, takze a je urcite perspektivni.
-            stack1.push(a);
-
-            //b se jeste vejde?
-            if(b.getCurrentVolume() > bagSize) {
-                cout << "DEBUG: Volume of " << b.getCurrentVolume() << " would be too much, cutting BB-branch" << endl;
-            } else {
-                stack1.push(b);
-            }
-
-        } else {
-        // tree leaf
-            cout << "========leaf======" << endl;
-            akt.print();
-
-            //je akt lepsim resenim?
-            float aktValue = akt.calculateValue(items_count, &values);
-            if(bestValue <= aktValue) { //if equal, doent matter, just making sure, when e.g. the bag is too small and the solution si the bag with <0,0, .. ,0,0>
-                best = akt;
-                bestValue = aktValue;
-            }
-            cout << "DEBUG: Current best value = " << bestValue << endl;
-        }
+        procedeNode(&bestValue,akt,&best,&bagSize,&volumes,&values,&stack1,items_count);
 
     } //while stack !empty end
     // the stack is empty now, everything has been tested and the winner is known:
@@ -203,10 +221,6 @@ int main(int argc, char** argv) {
 
     cout << endl << "OK, here it is, the solution seems to be:" << endl;
     best.print();
-    cout << "with the best value of " << bestValue << "." <<endl;
-
-    printVector(&volumes, "Volume");
-    printVector(&values, "Values");
-
+    cout << "with the best value of " << bestValue << "." << endl;
     return 0;
 }
