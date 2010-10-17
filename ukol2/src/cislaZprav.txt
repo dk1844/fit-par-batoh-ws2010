@@ -1,4 +1,5 @@
 100 INIT: init prace
+103 INIT: Neni prace, malo vstupnich dat
 
 
 200 REQ: zadost o praci
