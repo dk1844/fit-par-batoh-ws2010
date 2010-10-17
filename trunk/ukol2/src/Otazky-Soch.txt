@@ -1,0 +1,3 @@
+- Kdyz vypadnu z cyklu vypoctu (nedostatek dat nebo po 100 iteracich), mam zpracovat vsechny zpravy co cekaji ve fronte? Nebo si mam vybrat 
+  jen nektere? (otazka hlavne pokud mi dojdou data ve stacku, budeme cekat na zpravu od konkretniho procesoru, nebo zacneme zpracovavat zpravy ve fronte
+  a jednou treba na nova data narazime?
