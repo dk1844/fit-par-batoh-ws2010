@@ -1,6 +1,13 @@
-- diagram komunikace procesu [m]
-- main to fc [m]
+- diagram komunikace procesu [m] - beta hotova
+- main to fc [m] - hotovo
 - deleni prace init [d]
-- deleni zasobniku za behu [tbd m, konzulatace mejlem]
+- deleni zasobniku za behu [tbd m, konzulatace mejlem] - s cvicicim prodiskutovano
 - aduv [d]
 - sber [d]
+
+co prodiskutovat:
+
+- stack vs. fronta
+- maximalni velikost MPI zpravy
+- maximalni pocet predavanych stavu v jedne zprave
+
