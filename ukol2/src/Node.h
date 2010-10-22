@@ -101,7 +101,7 @@ public:
      * Prints info about a node.
      * Namely: content, value & volume, depth and expansion capability.
      */
-    void print();
+    void print(int processorId = -1);
 
     int getItemsCount();
     void setItemsCount(int count);

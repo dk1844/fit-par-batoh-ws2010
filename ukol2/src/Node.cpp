@@ -8,6 +8,8 @@
 //#include <limits>
 
 #include "Node.h"
+#include <stdio.h>
+#include <string.h>
 #include <sstream>
 
 
@@ -151,18 +153,18 @@ float Node::calculateValue(vector<float> * values) {
     return sumValue;
 }
 
-void Node::print() {
-
-    cout << "---Node Content:---" << endl;
-
-    cout << "Vector content: <";
+void Node::print(int processorId) {
+    
+    cout << "---Node Content:--- (" << processorId << ")" << endl;
+    
+    cout << "P" << processorId << ":" << "Vector content: <";
     for (int b = 0; b < this->_items_count; b++)
         cout << (this->isItemAt(b)) << " ";
     cout << ">" << endl;
 
-    cout << "Volume: " << this->_current_volume << endl;
-    cout << "Depth: " << this->_current_position << endl;
-    cout << "Expandable: " << ((this->isExpandable()) ? "YES" : "NO") << endl;
+    cout << "P" << processorId << ":" << "Volume: " << this->_current_volume << endl;
+    cout << "P" << processorId << ":" << "Depth: " << this->_current_position << endl;
+    cout << "P" << processorId << ":" << "Expandable: " << ((this->isExpandable()) ? "YES" : "NO") << endl;
 }
 
 int Node::getItemsCount() {

@@ -29,7 +29,7 @@
 #include <stdio.h>
 #include <string.h>
 
-//#include "mpi.h"
+#include "mpi.h"
 
 #include "Node.h"
 
@@ -145,8 +145,8 @@ void procedeNode(float * bestValue, Node root,Node * best, float * bagSize, vect
             root.expand(&a, &b, volumes);
 
             /*debug - start*/
-            cout << "---inner node---" << endl;
-            root.print();
+           // cout << "---inner node---" << endl;
+           // root.print();
             /*debug - end*/
 
             // predmet nepridan, takze a je urcite perspektivni.
@@ -155,15 +155,15 @@ void procedeNode(float * bestValue, Node root,Node * best, float * bagSize, vect
             //b se jeste vejde?
          
             if (b.getCurrentVolume() > (*bagSize) ){
-                cout << "DEBUG: Volume of " << b.getCurrentVolume() << " would be too much, cutting BB-branch" << endl;
+             //   cout << "DEBUG: Volume of " << b.getCurrentVolume() << " would be too much, cutting BB-branch" << endl;
             } else {
                 (*stack1).push(b);
             }
 
         } else {
             // tree leaf
-            cout << "========leaf======" << endl;
-            root.print();
+          //  cout << "========leaf======" << endl;
+          //  root.print();
 
             //je akt lepsim resenim?
             float aktValue = root.calculateValue(values);
@@ -171,17 +171,20 @@ void procedeNode(float * bestValue, Node root,Node * best, float * bagSize, vect
                 (*best) = root;
                 (*bestValue) = aktValue;
             }
-            cout << "DEBUG: Current best value = " << (*bestValue) << endl;
+            //cout << "DEBUG: Current best value = " << (*bestValue) << endl;
         }
 
 }
 
 int main(int argc, char** argv) {
-    /*
-    int process_rank;
-    int processes;
-    MPI_Status status;
+    
+    int process_rank = 0;
+    int processes = 5;
     char message[LENGTH];
+
+    /**/
+    MPI_Status status;
+    
 
     MPI_Init(&argc, &argv);
     MPI_Comm_rank(MPI_COMM_WORLD, &process_rank);
@@ -190,7 +193,7 @@ int main(int argc, char** argv) {
 
     sprintf(message, "There are %d processes.\n", processes); //==message
     printf("P%d:%s", process_rank, message); //everybody saying how many processes there are
-    */
+   
 
    //check arguments
     if (argc != 2) {
@@ -205,6 +208,7 @@ int main(int argc, char** argv) {
     float bagSize;
     int items_count;
     stack<Node> stack1;
+    
 
     //controls for paralel program
     //this falg will be used to hadle ADUV
@@ -222,11 +226,61 @@ int main(int argc, char** argv) {
 //    printVector(&values);
 
     //we can prepare data for other proceses here
+    
+    Node thisProot(items_count);
 
-    Node root(items_count);
-    Node thisProcessorNode = root;
-    stack1.push(thisProcessorNode);
+    if (process_rank == 0) {
+        //divide
+        
+        stack1.push(thisProot);
+        
+        while(stack1.size() < processes && !stack1.empty()) {
+            Node akt = stack1.top();
+            stack1.pop(); //remove top
 
+            if (akt.isExpandable()) {
+                Node a, b;
+                akt.expand(&a,&b,&volumes);
+                stack1.push(a);
+
+                if (b.getCurrentVolume() > bagSize ){
+                   cout << "DEBUG=pre0: Volume of " << b.getCurrentVolume() << " would be too much, cutting BB-branch" << endl;
+                } else {
+                    stack1.push(b);
+                }
+
+            } else {
+                cerr << "expand p0 error! DATA too small for too many processors." << endl;
+                return 225;
+            }
+
+        }
+        
+        cout << "P0:processes expanded to #" << stack1.size() << endl;
+        
+        for (int i=1;i<processes;i++) {
+            Node akt = stack1.top();
+            stack1.pop(); //remove top
+            int bufS = 100;
+            akt.serialize(message, bufS);
+            MPI_Send (message, strlen(message)+1, MPI_CHAR, i, 100, MPI_COMM_WORLD);
+        }
+        
+        cout << "P0:and sent " << endl;
+            
+    } else { 
+        //procesor not 0
+        MPI_Recv(message, LENGTH, MPI_CHAR, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+        cout << "P" << process_rank << ":msg received" << endl;
+        int BS = 100;
+        thisProot.deserialize(message,BS);
+        //thisProot.print(process_rank);
+        //cout << "P" << process_rank << ":look this is what i got:" << endl;
+        stack1.push(thisProot);
+
+    }
+    
+    
 
     Node best; // containing the right-now best leaf node.
     float bestValue = 0;
@@ -240,12 +294,13 @@ int main(int argc, char** argv) {
     } //while stack !empty end
     // the stack is empty now, everything has been tested and the winner is known:
 
+   /**/
+    cout << "P" << process_rank << ":msg received" << endl << "OK, here it is, the solution seems to be:"
+         << "with the best value of " << bestValue << "." << endl;
+    best.print(process_rank);
+   
 
-    cout << endl << "OK, here it is, the solution seems to be:" << endl;
-    best.print();
-    cout << "with the best value of " << bestValue << "." << endl;
-
-
+    /*
     int bufSize = 100;
     //char * buffer;
     //buffer = new char(bufSize);
@@ -262,8 +317,8 @@ int main(int argc, char** argv) {
 
     new2.print();
      cout << "with the best value of " << new2.calculateValue(&values) << "." << endl;
-
+*/
     //delete buffer;
-    //MPI_Finalize();
+    MPI_Finalize();
     return 0;
 }
