@@ -52,14 +52,14 @@ public:
      * @return current volume of the bag content
      */
     float getCurrentVolume();
+    void setCurrentVolume(float volume);
 
     /**
      * calculates bag content's value
-     * @param allItemsCount how many item there are in general (not only in the bag)
      * @param values vector of items' values
      * @return total value of items
      */
-    float calculateValue(int allItemsCount, vector<float> * values);
+    float calculateValue(vector<float> * values);
 
     /**
      * Inspects whether a given item is inside the bag (leaf)
@@ -83,6 +83,7 @@ public:
      * @return position in the vector = depth of the tree.
      */
     int getCurrentPosition();
+    void setCurrentPosition(int position);
 
     /**
      * Gives you the "binary" vector representing the content of the bag
@@ -101,6 +102,12 @@ public:
      * Namely: content, value & volume, depth and expansion capability.
      */
     void print();
+
+    int getItemsCount();
+    void setItemsCount(int count);
+
+    bool serialize(char * buffer, int &bufferSize);
+    bool deserialize(char * buffer, int bufferSize);
 
 
     char getMask(int index);

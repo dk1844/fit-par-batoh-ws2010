@@ -26,7 +26,14 @@
 #include <iomanip>   // format manipulation
 #include <string>
 
+#include <stdio.h>
+#include <string.h>
+
+//#include "mpi.h"
+
 #include "Node.h"
+
+#define LENGTH 100
 
 using namespace std;
 
@@ -159,7 +166,7 @@ void procedeNode(float * bestValue, Node root,Node * best, float * bagSize, vect
             root.print();
 
             //je akt lepsim resenim?
-            float aktValue = root.calculateValue(items_count, values);
+            float aktValue = root.calculateValue(values);
             if ((*bestValue) <= aktValue) { //if equal, doent matter, just making sure, when e.g. the bag is too small and the solution si the bag with <0,0, .. ,0,0>
                 (*best) = root;
                 (*bestValue) = aktValue;
@@ -170,6 +177,21 @@ void procedeNode(float * bestValue, Node root,Node * best, float * bagSize, vect
 }
 
 int main(int argc, char** argv) {
+    /*
+    int process_rank;
+    int processes;
+    MPI_Status status;
+    char message[LENGTH];
+
+    MPI_Init(&argc, &argv);
+    MPI_Comm_rank(MPI_COMM_WORLD, &process_rank);
+    MPI_Comm_size(MPI_COMM_WORLD, &processes);
+
+
+    sprintf(message, "There are %d processes.\n", processes); //==message
+    printf("P%d:%s", process_rank, message); //everybody saying how many processes there are
+    */
+
    //check arguments
     if (argc != 2) {
         cerr << "# arguments found = " << (argc - 1) << endl;
@@ -222,5 +244,26 @@ int main(int argc, char** argv) {
     cout << endl << "OK, here it is, the solution seems to be:" << endl;
     best.print();
     cout << "with the best value of " << bestValue << "." << endl;
+
+
+    int bufSize = 100;
+    //char * buffer;
+    //buffer = new char(bufSize);
+    char buffer[LENGTH];
+
+    best.serialize(buffer, bufSize);
+
+    cout << "akt best serializovano na: <" << buffer << "~" << bufSize << ">" <<endl;
+    
+
+    Node new2;
+    
+    new2.deserialize(buffer,bufSize);
+
+    new2.print();
+     cout << "with the best value of " << new2.calculateValue(&values) << "." << endl;
+
+    //delete buffer;
+    //MPI_Finalize();
     return 0;
 }

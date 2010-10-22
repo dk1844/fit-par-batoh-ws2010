@@ -8,10 +8,17 @@
 //#include <limits>
 
 #include "Node.h"
+#include <sstream>
+
 
 Node::Node() {
-    this->_current_volume = 0;
+    this->_current_volume = 0.0;
     this->_int_char_size = sizeof(char) * 8;
+    
+    this->_int_char_size = sizeof(char) * 8;
+    //if count is fold of sizeof(char), simple dividing will determine no. chars we need
+    this->_current_content = vector<char> (_int_char_size,0);
+    this->_items_count = 0;
 
 }
 
@@ -21,11 +28,16 @@ Node::~Node() {
 }
 
 Node::Node(int count, int position, float volume) {
+
     this->_int_char_size = sizeof(char) * 8;
-    //if count is fold of sizeof(char), simple dividing will determine no. chars we need
+    this->_current_content = vector<char> (_int_char_size,0);
+
 
     //if ((count % this->_int_char_size)==0) {
-        this->_current_content = vector<char>((count/this->_int_char_size) + 1, 0);
+        //this->_current_content = vector<char>((count/this->_int_char_size) + 1, 0);
+
+    this->_current_content.resize((count/this->_int_char_size) + 1,0);
+
     //} else {
         //if there are some items remain after dividing, add 1 more char
       //  this->_current_content = vector<char>((count/this->_int_char_size) + 1, 0);
@@ -58,9 +70,15 @@ void Node::expand(Node * n0, Node * n1, vector<float> * volumes) {
 float Node::getCurrentVolume() {
     return this->_current_volume;
 }
+void Node::setCurrentVolume(float volume) {
+    this->_current_volume = volume;
+}
 
 int Node::getCurrentPosition() {
     return this->_current_position;
+}
+void Node::setCurrentPosition(int position) {
+    this->_current_position = position;
 }
 
 vector<char> Node::getCurrentContent() {
@@ -120,8 +138,9 @@ char Node::getMask(int index){
     return mask;
 }
 
-float Node::calculateValue(int allItemsCount, vector<float> * values) {
+float Node::calculateValue(vector<float> * values) {
     float sumValue = 0;
+    int allItemsCount = this->getItemsCount();
 
     for (int i=0; i < allItemsCount; i++) {
         if (this->isItemAt(i)) {
@@ -144,4 +163,166 @@ void Node::print() {
     cout << "Volume: " << this->_current_volume << endl;
     cout << "Depth: " << this->_current_position << endl;
     cout << "Expandable: " << ((this->isExpandable()) ? "YES" : "NO") << endl;
+}
+
+int Node::getItemsCount() {
+    return this->_items_count;
+}
+void Node::setItemsCount(int count) {
+    this->_items_count = count;
+}
+
+/**
+ * Serialization of a node
+ * expected format is <total_items_count|current_position|current_volume|vector>, e.g.: <5|10001|1|2.1>
+ * @param buffer buffer to write into
+ * @param bufferSize buffer size
+ * @return
+ */
+bool Node::serialize(char * buffer, int &bufferSize) {
+
+    /*
+    string content;
+    content.clear();
+    char b[100]; //aux
+
+    //items count|
+    sprintf (b, "%d", this->_items_count);
+    content.append( b );
+    content.append("|");
+
+    //vector|
+    for (int i=0;i < this->_items_count;i++) {
+        if (this->isItemAt(i)) {
+            content.append("1");
+        } else {
+            content.append("0");
+        }
+
+    }
+    content.append("|");
+
+    //current position|
+    sprintf (b, "%d", this->_current_position);
+    content.append( b );
+    content.append("|");
+
+   //current volume|
+    stringstream sstr;
+    sstr << this->getCurrentVolume();
+    //string str1 = sstr.str();
+    //sprintf (b, "%f", this->_current_volume); //tady to pada!
+    content.append( sstr.str() );
+    content.append("|");
+
+
+
+    
+    //finding out size?
+    bufferSize = content.size();
+
+    //making a c-string
+    strcpy(buffer, content.c_str());
+*/
+    stringstream sstr;
+    sstr.clear();
+    sstr.flush();
+
+    sstr << this->getItemsCount();
+    sstr << " " << this->getCurrentPosition();
+    sstr << " " << this->getCurrentVolume() << " " ;
+    for (int i=0;i < this->_items_count; i++) {
+        if (this->isItemAt(i)) {
+            sstr << '1' ;
+        } else {
+            sstr << '0' ;
+        }
+    }
+    
+    //bufferSize = sstr.str().size();
+    string res = sstr.str();
+    bufferSize = res.length();
+
+    strcpy(buffer, res.c_str());
+
+    //strncpy(buffer, sstr.str().c_str(), sstr.str().size());
+    //debug
+    //cout << buffer  << " .. size = " << bufferSize << endl;
+    //cout << res  << " .. size = " << bufferSize << endl;
+    
+  //cout << sstr.str().c_str()  << " .. size = " << bufferSize << endl;
+
+    return true;
+}
+
+bool Node::deserialize(char * buffer, int bufferSize) {
+    /* string a;
+    a = buffer;
+
+    int pos1 = a.find("|",0);
+
+    cout << pos1 << endl;
+
+    int count = atoi(a.substr(0,pos1).c_str()); //the count
+    cout << count << endl;
+
+    this->_items_count = count;
+    this->_current_content = vector<char>((count/this->_int_char_size) + 1, 0);
+
+    string b = a.substr(2,count);
+    cout << "-" << b  <<"-" << endl;
+
+
+    for (int i=0; i<b.size();i++) {
+        if (b.at(i) == '0') {
+        //if (true) {
+            this->setItemAt(i,false);
+        }else {
+            this->setItemAt(i,true);
+        }
+    }
+
+    //dodelat current volume a pozici!
+     */
+    string serial;
+    serial.clear();
+    serial = buffer;
+
+    //cout << "A=" << serial << "=" << endl;
+    stringstream sstr;
+    sstr.clear();
+    sstr.flush();
+    sstr << serial;
+
+    int myint;
+    float myfloat;
+    string rest;
+
+    sstr >> myint;
+    this->setItemsCount(myint);
+
+    sstr >> myint;
+    this->setCurrentPosition(myint);
+
+    sstr >> myfloat;
+    this->setCurrentVolume(myfloat);
+
+    
+    sstr >> rest;
+    this->_current_content.resize((rest.size()/this->_int_char_size) + 1,0);
+
+
+    for (int i=0;i< rest.size();i++) {
+        if(rest.at(i) == '1') {
+            this->setItemAt(i,true);
+        } else {
+            this->setItemAt(i,false);
+        }
+    }
+    
+
+    //cout << myint << ", " <<  2*myint << endl;
+
+
+    return true;
 }
