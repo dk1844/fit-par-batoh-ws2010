@@ -35,6 +35,22 @@
 
 #define LENGTH 100
 
+//tags
+#define MSG_INIT_WORK    100 //INIT: init prace
+#define MSG_NO_INIT_WORK 103 //INIT: Neni prace, malo vstupnich dat
+
+
+#define MSG_WANT_WORK 200 //REQ: zadost o praci
+#define MSG_SENDING_WORK 202 //ANS: posilam cast zasobniku (praci)
+#define MSG_NO_WORK 203 //ANS: neni prace
+
+
+// #define MSG_PESEK 300: pesek a dal TBD
+
+
+#define MSG_TERM 400 //: Ukoncuji
+#define MSG_MY_BEST 401 //: "Send me your best"
+
 using namespace std;
 
 /**
@@ -98,7 +114,7 @@ void loadDataFromFile(char * filename, int * items_cnt, vector<float> * volume, 
     (*volume).resize(count);
     (*value).resize(count);
 
-    cout << "Expecting 2x" << count << " values." << endl;
+     cout << "Loading data: (2x" << count << " values)." << endl;
 
     for (int i = 0; i < count; i++) {
         fp_in >> float_val;
@@ -176,6 +192,40 @@ void procedeNode(float * bestValue, Node root,Node * best, float * bagSize, vect
 
 }
 
+/**
+ * Stack division for all processes
+ * @param volumes vector of volumes
+ * @param stack1 the stack
+ * @param bagSize size of the bag
+ * @param processes !important # processes to divide into
+ * @return true if succesfully divided (ready for parallel), false for too little data for this many processors => serial job.
+ */
+bool initDivide(vector<float> * volumes, stack<Node> * stack1, float bagSize, int processes) {
+
+        while((*stack1).size() < processes && !(*stack1).empty()) {
+            Node akt = (*stack1).top();
+            (*stack1).pop(); //remove top
+
+            if (akt.isExpandable()) {
+                Node a, b;
+                akt.expand(&a,&b,volumes);
+                (*stack1).push(a);
+
+                if (b.getCurrentVolume() > bagSize ){
+                   cout << "DEBUG=pre0: Volume of " << b.getCurrentVolume() << " would be too much, cutting BB-branch" << endl;
+                } else {
+                    (*stack1).push(b);
+                }
+
+            } else {
+                cout << "P0:Data too small -> serial job." << endl;
+                return false; //only p0 solving!
+            }
+
+        }
+        return true; //parallel ok
+}
+
 int main(int argc, char** argv) {
     
     int process_rank = 0;
@@ -219,6 +269,8 @@ int main(int argc, char** argv) {
     //load source date from file
     loadDataFromFile(argv[1], &items_count, &volumes, &values, &bagSize);
 
+    //whether to run parallel
+    bool isParallel;
     //debug only
 //    cout << "Loaded bag size = " << bagSize << endl;
 //    cout << "Loaded items count = " << items_count << endl;
@@ -230,57 +282,62 @@ int main(int argc, char** argv) {
     Node thisProot(items_count);
 
     if (process_rank == 0) {
-        //divide
-        
+        //  try to divide
         stack1.push(thisProot);
-        
-        while(stack1.size() < processes && !stack1.empty()) {
-            Node akt = stack1.top();
-            stack1.pop(); //remove top
+        isParallel = initDivide(&volumes, &stack1, bagSize, processes);
+    }
 
-            if (akt.isExpandable()) {
-                Node a, b;
-                akt.expand(&a,&b,&volumes);
-                stack1.push(a);
 
-                if (b.getCurrentVolume() > bagSize ){
-                   cout << "DEBUG=pre0: Volume of " << b.getCurrentVolume() << " would be too much, cutting BB-branch" << endl;
-                } else {
-                    stack1.push(b);
-                }
+    if (process_rank == 0) {
 
-            } else {
-                cerr << "expand p0 error! DATA too small for too many processors." << endl;
-                return 225;
+        if (isParallel) {
+            cout << "P0:processes expanded to #" << stack1.size() << endl;
+
+            for (int i=1;i<processes;i++) {
+                Node akt = stack1.top();
+                stack1.pop(); //remove top
+                int bufS = 100;
+                akt.serialize(message, bufS);
+                MPI_Send (message, strlen(message)+1, MPI_CHAR, i, MSG_INIT_WORK, MPI_COMM_WORLD);
             }
 
+        } else {
+            //not parallel
+            //strcpy("shutdown this thread, not parallel :)", message);
+            for (int i=1;i<processes;i++) {
+                MPI_Send (message, strlen(message)+1, MPI_CHAR, i, MSG_NO_INIT_WORK, MPI_COMM_WORLD);
+            }
         }
-        
-        cout << "P0:processes expanded to #" << stack1.size() << endl;
-        
-        for (int i=1;i<processes;i++) {
-            Node akt = stack1.top();
-            stack1.pop(); //remove top
-            int bufS = 100;
-            akt.serialize(message, bufS);
-            MPI_Send (message, strlen(message)+1, MPI_CHAR, i, 100, MPI_COMM_WORLD);
-        }
-        
-        cout << "P0:and sent " << endl;
-            
-    } else { 
+
+    } else {
         //procesor not 0
         MPI_Recv(message, LENGTH, MPI_CHAR, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
-        cout << "P" << process_rank << ":msg received" << endl;
-        int BS = 100;
-        thisProot.deserialize(message,BS);
-        //thisProot.print(process_rank);
-        //cout << "P" << process_rank << ":look this is what i got:" << endl;
-        stack1.push(thisProot);
+        cout << "P" << process_rank << ": received: " << message << endl;
 
+        if(status.MPI_TAG == MSG_INIT_WORK) {
+            //everything ok.
+            int BS = 100;
+            thisProot.deserialize(message,BS);
+            //thisProot.print(process_rank);
+            //cout << "P" << process_rank << ":look this is what i got:" << endl;
+            stack1.push(thisProot);
+        } else if (status.MPI_TAG == MSG_NO_INIT_WORK) {
+            isParallel = false;
+            cout << "P" << process_rank <<": serial job = i'm done." << endl;
+             MPI_Finalize();
+            return 0;
+        } else {
+            cerr << "P" << process_rank <<": init msg error" << endl;
+        }
     }
-    
-    
+    //init done.
+
+    //now they have to "work" and check for messages (MSG_WANT_WORK,MSG_TERM)
+    //and eventually send some (MSG_SENDING_WORK, MSG_NO_WORK, MSG_MY_BEST
+    //tzn. pouzivat neblokujici I fce.
+
+    //TODO load balancing
+
 
     Node best; // containing the right-now best leaf node.
     float bestValue = 0;
@@ -294,11 +351,13 @@ int main(int argc, char** argv) {
     } //while stack !empty end
     // the stack is empty now, everything has been tested and the winner is known:
 
-   /**/
-    cout << "P" << process_rank << ":msg received" << endl << "OK, here it is, the solution seems to be:"
+   /* PESEK(ADUV) HERE*/
+    cout << "P" << process_rank << ":" << endl << "OK, here it is, the solution seems to be (meaning for this Process):"
          << "with the best value of " << bestValue << "." << endl;
     best.print(process_rank);
    
+    /* SBER HERE */
+
 
     /*
     int bufSize = 100;
