@@ -37,19 +37,20 @@
 
 //tags
 #define MSG_INIT_WORK    100 //INIT: init prace
-#define MSG_NO_INIT_WORK 103 //INIT: Neni prace, malo vstupnich dat
+#define MSG_INIT_NO_WORK 103 //INIT: Neni prace, malo vstupnich dat
 
 
-#define MSG_WANT_WORK 200 //REQ: zadost o praci
-#define MSG_SENDING_WORK 202 //ANS: posilam cast zasobniku (praci)
-#define MSG_NO_WORK 203 //ANS: neni prace
+#define MSG_WORK_REQUEST 200 //REQ: zadost o praci
+#define MSG_WORK_SENT 202 //ANS: posilam cast zasobniku (praci)
+#define MSG_WORK_NOWORK 203 //ANS: neni prace
 
+#define MSG_TOKEN 300 //: pesek a dal TBD
 
-// #define MSG_PESEK 300: pesek a dal TBD
-
-
-#define MSG_TERM 400 //: Ukoncuji
+#define MSG_FINISH 400 //: Ukoncuji
 #define MSG_MY_BEST 401 //: "Send me your best"
+
+
+
 
 using namespace std;
 
@@ -305,7 +306,7 @@ int main(int argc, char** argv) {
             //not parallel
             //strcpy("shutdown this thread, not parallel :)", message);
             for (int i=1;i<processes;i++) {
-                MPI_Send (message, strlen(message)+1, MPI_CHAR, i, MSG_NO_INIT_WORK, MPI_COMM_WORLD);
+                MPI_Send (message, strlen(message)+1, MPI_CHAR, i, MSG_INIT_NO_WORK, MPI_COMM_WORLD);
             }
         }
 
@@ -321,23 +322,25 @@ int main(int argc, char** argv) {
             //thisProot.print(process_rank);
             //cout << "P" << process_rank << ":look this is what i got:" << endl;
             stack1.push(thisProot);
-        } else if (status.MPI_TAG == MSG_NO_INIT_WORK) {
+        } else if (status.MPI_TAG == MSG_INIT_NO_WORK) {
             isParallel = false;
             cout << "P" << process_rank <<": serial job = i'm done." << endl;
-             MPI_Finalize();
+
+            MPI_Finalize();
             return 0;
         } else {
             cerr << "P" << process_rank <<": init msg error" << endl;
         }
     }
+    
     //init done.
+    cout << "P" << process_rank << ": Init done. Everyone know what to do." << endl;
 
     //now they have to "work" and check for messages (MSG_WANT_WORK,MSG_TERM)
     //and eventually send some (MSG_SENDING_WORK, MSG_NO_WORK, MSG_MY_BEST
     //tzn. pouzivat neblokujici I fce.
 
     //TODO load balancing
-
 
     Node best; // containing the right-now best leaf node.
     float bestValue = 0;
@@ -349,6 +352,7 @@ int main(int argc, char** argv) {
         procedeNode(&bestValue,akt,&best,&bagSize,&volumes,&values,&stack1,items_count);
 
     } //while stack !empty end
+
     // the stack is empty now, everything has been tested and the winner is known:
 
    /* PESEK(ADUV) HERE*/
