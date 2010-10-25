@@ -6,13 +6,15 @@
 202 ANS: posilam cast zasobniku (praci)
 203 ANS: neni prace
 
-300: pesek
+300: pesek white
+301: pesek black
 
 400: Ukoncuji
 401: "Send me your best"
 
 //-----realization :)
 
+//tags
 //tags
 #define MSG_INIT_WORK    100 //INIT: init prace
 #define MSG_INIT_NO_WORK 103 //INIT: Neni prace, malo vstupnich dat
@@ -22,7 +24,8 @@
 #define MSG_WORK_SENT 202 //ANS: posilam cast zasobniku (praci)
 #define MSG_WORK_NOWORK 203 //ANS: neni prace
 
-#define MSG_TOKEN 300 //: pesek a dal TBD
+#define MSG_TOKEN_WHITE 300 //: pesek a dal TBD
+#define MSG_TOKEN_BLACK 301
 
 #define MSG_FINISH 400 //: Ukoncuji
 #define MSG_MY_BEST 401 //: "Send me your best"

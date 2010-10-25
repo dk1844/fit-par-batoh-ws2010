@@ -34,6 +34,7 @@
 #include "Node.h"
 
 #define LENGTH 100
+#define CHECK_MSG_AMOUNT 100
 
 //tags
 #define MSG_INIT_WORK    100 //INIT: init prace
@@ -44,7 +45,8 @@
 #define MSG_WORK_SENT 202 //ANS: posilam cast zasobniku (praci)
 #define MSG_WORK_NOWORK 203 //ANS: neni prace
 
-#define MSG_TOKEN 300 //: pesek a dal TBD
+#define MSG_TOKEN_WHITE 300 //: pesek a dal TBD
+#define MSG_TOKEN_BLACK 301 
 
 #define MSG_FINISH 400 //: Ukoncuji
 #define MSG_MY_BEST 401 //: "Send me your best"
@@ -334,33 +336,166 @@ int main(int argc, char** argv) {
     }
     
     //init done.
-    cout << "P" << process_rank << ": Init done. Everyone know what to do." << endl;
+    cout << "P" << process_rank << ": Init done. Everyone knows what to do." << endl;
 
     //now they have to "work" and check for messages (MSG_WANT_WORK,MSG_TERM)
     //and eventually send some (MSG_SENDING_WORK, MSG_NO_WORK, MSG_MY_BEST
     //tzn. pouzivat neblokujici I fce.
 
-    //TODO load balancing
 
+    
     Node best; // containing the right-now best leaf node.
     float bestValue = 0;
+    //TODO load balancing
+    //if parallel resit!
+    int citac=0;
+    int flag;
+    bool finished = false;
+    int bufS = 100;
+    bool im_done_too;
+    int locals_received_count = 0;
+                               
 
-    while (!stack1.empty()) {
-        Node akt = stack1.top();
-        stack1.pop(); //remove top
+    while (!stack1.empty() || !finished ) //ukoncime jen, kdyz bude stack prazdny a finished true.
+    {
+      citac++;
+      if ((citac % CHECK_MSG_AMOUNT)==0)
+      {
+        MPI_Iprobe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &flag, &status);
+        if (flag)
+        {
+          //prisla zprava, je treba ji obslouzit
+          //v promenne status je tag (status.MPI_TAG), cislo odesilatele (status.MPI_SOURCE)
+          //a pripadne cislo chyby (status.MPI_ERROR)
+          switch (status.MPI_TAG)
+          {
+             case MSG_WORK_REQUEST : // zadost o praci, prijmout a dopovedet
+                                     // zaslat rozdeleny zasobnik a nebo odmitnuti MSG_WORK_NOWORK
+                                     break;
+             case MSG_WORK_SENT : // prisel rozdeleny zasobnik, prijmout
+                                  // deserializovat a spustit vypocet
+                                  break;
+             case MSG_WORK_NOWORK : // odmitnuti zadosti o praci
+                                    // zkusit jiny proces
+                                    // a nebo se prepnout do pasivniho stavu a cekat na token
+                                    break;
 
-        procedeNode(&bestValue,akt,&best,&bagSize,&volumes,&values,&stack1,items_count);
+             case MSG_TOKEN_WHITE :
+             case MSG_TOKEN_BLACK : //ukoncovaci token, prijmout a nasledne preposlat
+                              // - bily nebo cerny v zavislosti na stavu procesu
+                 im_done_too = stack1.empty(); // somehow to figure out later..
 
-    } //while stack !empty end
+                 int msgToSend;
+                 if (status.MPI_TAG == MSG_TOKEN_WHITE && im_done_too) {
+                     msgToSend = MSG_TOKEN_WHITE;
+                 } else {
+                     msgToSend = MSG_TOKEN_BLACK;
+                 }
+
+                 if (process_rank != 0) {
+                    MPI_Recv(&message, LENGTH, MPI_CHAR, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+                    MPI_Send (message, strlen(message)+1, MPI_CHAR, (process_rank+1) % processes, msgToSend, MPI_COMM_WORLD);
+                 } else {
+                    //this is zero, received token and..
+                    MPI_Recv(&message, LENGTH, MPI_CHAR, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+
+                    //is it over?
+                    if (status.MPI_TAG == MSG_TOKEN_WHITE) {
+                        //its over.
+                        for (int i=1;i<processes;i++) {
+                            MPI_Send (message, strlen(message)+1, MPI_CHAR, i, MSG_FINISH, MPI_COMM_WORLD);
+                        }
+                    } else {
+                        //someone was black. do yet another round.
+                        MPI_Send (message, strlen(message)+1, MPI_CHAR, (process_rank+1) % processes, MSG_TOKEN_WHITE, MPI_COMM_WORLD);
+                    }
+                 }
+                 break;
+             case MSG_FINISH : //konec vypoctu - proces 0 pomoci tokenu zjistil, ze jiz nikdo nema praci
+                               //a rozeslal zpravu ukoncujici vypocet
+                               //mam-li reseni, odeslu procesu 0
+                               //nasledne ukoncim spoji cinnost
+                               //jestlize se meri cas, nezapomen zavolat koncovou barieru MPI_Barrier (MPI_COMM_WORLD)
+                               if (process_rank != 0) {
+                                    cout << "P" << process_rank << ":" << "OK, here it is, the LOCAL! solution seems to be"
+                                         << "with the best value of :" << bestValue << "." << endl;
+                                        best.print(process_rank);
+                               } else {
+                                     cerr << "P" << process_rank << ":" << "P0 should never receive MSG_FINISH!" << endl;
+                               }
+                               
+                               //best mam.
+                               best.serialize(message, bufS);
+                               MPI_Send (message, strlen(message)+1, MPI_CHAR, 0, MSG_MY_BEST, MPI_COMM_WORLD);
+
+                               MPI_Finalize();
+                               exit (0);
+                               break;
+
+             case MSG_MY_BEST :  if (process_rank == 0) {
+                                 // receive and try to figure out, who's the best..
+
+                                MPI_Recv(message, LENGTH, MPI_CHAR, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+                                cout << "P" << process_rank << ":FINALE received: " << message << endl;
+
+                                Node akt;
+                                akt.deserialize(message,bufS);
+
+                                //is akt better than my best?
+                                //... compare and save the best to best :)
+
+                                
+                                /*cout << "P" << process_rank << ":" << "OK, here it is, the solution seems to be (meaning for this Process):"
+                                     << "with the best value of " << bestValue << "." << endl;
+                                    best.print(process_rank);
+                                  */
+
+                               } else {
+                                     cerr << "P" << process_rank << ":" << "Pnot0 should never receive MSG_MY_BEST!" << endl;
+                               }
+
+                               locals_received_count++;
+
+                               //did everything count home?
+                               if (locals_received_count == processes-1) {
+                                    finished = true;
+                               }
+                               
+                               break;
+             default : 
+                 cerr << "unrecognized message type" << endl;
+                 break;
+          }
+        }
+      }
+
+
+      //work!
+        if (!stack1.empty()) {
+            Node akt = stack1.top();
+            stack1.pop(); //remove top
+            procedeNode(&bestValue,akt,&best,&bagSize,&volumes,&values,&stack1,items_count);
+        }
+
+        //if (stack1.empty()) finished = true; //zatim
+       if (process_rank == 0 && stack1.empty() && !data_given_to_next) { // to send this: 0, empty, not send before.
+           data_given_to_next = true;
+           MPI_Send (message, strlen(message)+1, MPI_CHAR, (process_rank+1) % processes, MSG_TOKEN_WHITE, MPI_COMM_WORLD);
+
+       }
+
+    }
+
+
+cout << "P" << process_rank << ":" << "P0-best:" << "with the best value of " << bestValue << "." << endl;
+                                        best.print(process_rank);
+
+    //while stack !empty end
 
     // the stack is empty now, everything has been tested and the winner is known:
 
    /* PESEK(ADUV) HERE*/
-    cout << "P" << process_rank << ":" << endl << "OK, here it is, the solution seems to be (meaning for this Process):"
-         << "with the best value of " << bestValue << "." << endl;
-    best.print(process_rank);
-   
-    /* SBER HERE */
+  
 
 
     /*
@@ -382,6 +517,12 @@ int main(int argc, char** argv) {
      cout << "with the best value of " << new2.calculateValue(&values) << "." << endl;
 */
     //delete buffer;
+    
+    //no one (expcept P0) should get here!
+    if (process_rank != 0) {
+        cerr << "P" << process_rank << ":" << "noone should reach the endpoint!" << endl;
+    }
+
     MPI_Finalize();
     return 0;
 }
