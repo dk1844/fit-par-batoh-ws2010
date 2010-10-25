@@ -63,7 +63,7 @@ INFINIBAND="true"
 # | Parallel program with arguments.                                          |
 # |                                                                           |
 #  ===========================================================================
-MY_PARALLEL_PROGRAM="./main data-mini.txt"
+MY_PARALLEL_PROGRAM="./main data.txt"
 
 
 

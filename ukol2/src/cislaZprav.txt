@@ -6,10 +6,22 @@
 202 ANS: posilam cast zasobniku (praci)
 203 ANS: neni prace
 
-
 300: pesek
-
 
 400: Ukoncuji
 401: "Send me your best"
 
+//-----realization :)
+
+//tags
+#define MSG_INIT_WORK    100 //INIT: init prace
+#define MSG_NO_INIT_WORK 103 //INIT: Neni prace, malo vstupnich dat
+
+#define MSG_WANT_WORK 200 //REQ: zadost o praci
+#define MSG_SENDING_WORK 202 //ANS: posilam cast zasobniku (praci)
+#define MSG_NO_WORK 203 //ANS: neni prace
+
+#define MSG_PESEK 300 //: pesek a dal TBD
+
+#define MSG_TERM 400 //: Ukoncuji
+#define MSG_MY_BEST 401 //: "Send me your best"
