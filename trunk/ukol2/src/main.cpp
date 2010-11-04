@@ -307,6 +307,7 @@ int main(int argc, char** argv) {
 
         if (status.MPI_TAG == MSG_INIT_WORK) {
             //everything ok.
+            isParallel = true;
             int BS = 100;
             thisProot.deserialize(message, BS);
             //thisProot.print(process_rank);
@@ -480,7 +481,7 @@ int main(int argc, char** argv) {
         //isParallel part done
     } else {
         //it a serial job
-        cout << "Performing a serial job, cuz the data is too small to bother :)" << endl;
+        cout << "P" << process_rank << ":" << "Performing a serial job, cuz the data is too small to bother :)" << endl;
         //work!
         while (!stack1.empty()) {
             Node akt = stack1.top();
