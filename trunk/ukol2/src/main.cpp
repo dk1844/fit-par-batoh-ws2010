@@ -19,6 +19,8 @@
 
 #include <cstdlib>
 #include <stack>
+
+#include "NodeStack.h"
 #include <vector>
 
 #include <iostream>  // I/O
@@ -32,6 +34,7 @@
 #include "mpi.h"
 
 #include "Node.h"
+#include "NodeStack.h"
 
 #define LENGTH 100
 #define CHECK_MSG_AMOUNT 100
@@ -157,8 +160,8 @@ void loadDataFromFile(char * filename, int * items_cnt, vector<float> * volume, 
  * @param stack1 - pointer to stack 0 we will add new nodes using this
  * @param items_count - # of items
  */
-
-void procedeNode(float * bestValue, Node root, Node * best, float * bagSize, vector<float> * volumes, vector<float> * values, stack<Node> * stack1, int items_count) {
+void procedeNode(float * bestValue, Node root, Node * best, float * bagSize, vector<float> * volumes, vector<float> * values, NodeStack * stack1, int items_count) {
+//void procedeNode(float * bestValue, Node root, Node * best, float * bagSize, vector<float> * volumes, vector<float> * values, stack<Node> * stack1, int items_count) {
     if (root.isExpandable()) {
         Node a;
         Node b;
@@ -204,7 +207,8 @@ void procedeNode(float * bestValue, Node root, Node * best, float * bagSize, vec
  * @param processes !important # processes to divide into
  * @return true if succesfully divided (ready for parallel), false for too little data for this many processors => serial job.
  */
-bool initDivide(vector<float> * volumes, stack<Node> * stack1, float bagSize, int processes) {
+bool initDivide(vector<float> * volumes, NodeStack * stack1, float bagSize, int processes) {
+//bool initDivide(vector<float> * volumes, stack<Node> * stack1, float bagSize, int processes) {
 
     while ((*stack1).size() < processes && !(*stack1).empty()) {
         Node akt = (*stack1).top();
@@ -262,7 +266,10 @@ int main(int argc, char** argv) {
     vector<float> values;
     float bagSize;
     int items_count;
-    stack<Node> stack1;
+    //stack<Node> stack1;
+    NodeStack stack1;
+    stack1.setBehavior(NodeStack::BEHAVIOR_STACK);
+
 
     //load source date from file
     loadDataFromFile(argv[1], &items_count, &volumes, &values, &bagSize);
@@ -429,14 +436,19 @@ int main(int argc, char** argv) {
                                 // receive and try to figure out, who's the best..
 
                                 MPI_Recv(message, LENGTH, MPI_CHAR, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
-                                cout << "P" << process_rank << ":FINALE received: " << message << endl;
+                                cout << "P" << process_rank << ":FINALE received: " << message  << "  from P" << status.MPI_SOURCE << endl;
 
                                 Node akt;
                                 akt.deserialize(message, bufS);
 
                                 //is akt better than my best?
+                                //cout << "P0: comparing " << akt.calculateValue(&values) << " <? " << bestValue << endl;
+
                                 if (akt.calculateValue(&values) > bestValue) {
+
                                     best = akt;
+                                    bestValue = best.calculateValue(&values);
+                                    //cout << "P0: best changed to " << bestValue << endl;
                                     //best.print(process_rank);
                                 }
 
