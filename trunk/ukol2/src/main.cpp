@@ -53,6 +53,8 @@
 
 #define MSG_FINISH 400 //: Ukoncuji
 #define MSG_MY_BEST 401 //: "Send me your best"
+#define MSG_TERMINATE 401 //
+
 
 
 
@@ -83,6 +85,7 @@ bool data_given_to_next = false;
 bool waiting_for_data = false;
 bool token_received = false;
 int max_data_requests = 0;
+int no_failed_data_req = 0;
 
     //stack<Node> stack1;
 /**
@@ -138,11 +141,7 @@ void loadDataFromFile(char * filename, int * items_cnt, vector<float> * volume, 
         cerr << "Wrong format" << endl;
         exit(1);
     }
-
     (*bagSize) = float_val;
-
-
-
     (*volume).resize(count);
     (*value).resize(count);
 
@@ -187,42 +186,29 @@ void loadDataFromFile(char * filename, int * items_cnt, vector<float> * volume, 
  * @param items_count - # of items
  */
 void procedeNode(float * bestValue, Node root, Node * best, float * bagSize, vector<float> * volumes, vector<float> * values, NodeStack * stack1, int items_count) {
-//void procedeNode(float * bestValue, Node root, Node * best, float * bagSize, vector<float> * volumes, vector<float> * values, stack<Node> * stack1, int items_count) {
     if (root.isExpandable()) {
         Node a;
         Node b;
         root.expand(&a, &b, volumes);
 
-        /*debug - start*/
-        // cout << "---inner node---" << endl;
-        // root.print();
-        /*debug - end*/
-
         // predmet nepridan, takze a je urcite perspektivni.
         (*stack1).push(a);
 
         //b se jeste vejde?
-
         if (b.getCurrentVolume() > (*bagSize)) {
-            //   cout << "DEBUG: Volume of " << b.getCurrentVolume() << " would be too much, cutting BB-branch" << endl;
+
         } else {
             (*stack1).push(b);
         }
 
     } else {
-        // tree leaf
-        //  cout << "========leaf======" << endl;
-        //  root.print();
-
         //je akt lepsim resenim?
         float aktValue = root.calculateValue(values);
         if ((*bestValue) <= aktValue) { //if equal, doent matter, just making sure, when e.g. the bag is too small and the solution si the bag with <0,0, .. ,0,0>
             (*best) = root;
             (*bestValue) = aktValue;
         }
-        //cout << "DEBUG: Current best value = " << (*bestValue) << endl;
     }
-
 }
 
 /**
@@ -255,20 +241,16 @@ bool initDivide(vector<float> * volumes, NodeStack * stack1, float bagSize, int 
             cout << "P0:Data too small -> serial job." << endl;
             return false; //only p0 solving!
         }
-
     }
     return true; //parallel ok
 }
 
 void receiveMessage () {
     //blocking receive
-    
-    
     bool check_next_message = true;
     Node thisProot(items_count);
     
     while(check_next_message){
-        //cout << "P" << process_rank << ": is entering to blocking receive" << endl;
         MPI_Recv(message, LENGTH, MPI_CHAR, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
         switch (status.MPI_TAG) {
                 case MSG_WORK_REQUEST: // zadost o praci, prijmout a dopovedet
@@ -290,28 +272,41 @@ void receiveMessage () {
                             data_given_to_next = true;
                         }
                     }
-
-
                     break;
                 case MSG_WORK_SENT: // prisel rozdeleny zasobnik, prijmout
                     // deserializovat a spustit vypocet
 
                     cout << "P" << process_rank << ":Data received from P" << status.MPI_SOURCE << ": message:" << message << endl;
 
-                    //int BS = 100;
-                    //take data from message
                     thisProot.deserialize(message, bufS);
                     //put my root to stack
                     stack1.push(thisProot);
                     //I have new data so I can start calculation again
                     waiting_for_data = false;
+                    //erase counter of unseccessful tries for data
+                    no_failed_data_req = 0;
                     break;
                 case MSG_WORK_NOWORK: // odmitnuti zadosti o praci
                     // zkusit jiny proces
                     // a nebo se prepnout do pasivniho stavu a cekat na token
-                    cout << "P" << process_rank << ":NO WORK Received from from P" << status.MPI_SOURCE << endl;
+                    cout << "P" << process_rank << ":NO WORK Received from from P" << status.MPI_SOURCE << ":" << " Request for work sent to P" << donator_next << endl;
+                    
+                    //there is only limited unsuccessful requests for work
+                    if(max_data_requests >= no_failed_data_req ){
+                        MPI_Send(message, strlen(message) + 1, MPI_CHAR, donator_next, MSG_WORK_REQUEST, MPI_COMM_WORLD);
+                        waiting_for_data=true;
+                        no_failed_data_req++;
 
-                    //send request to another proces...
+                        //calculation of next donator
+                        donator_next = (donator_next +1) % processes;
+
+                        //prohibit to ask myself for work
+                        if (donator_next==process_rank) {
+                            donator_next = (donator_next +1) % processes;
+                        }
+                     } else {
+                        cout << "P" << process_rank << ": I cannot ask for other work... waiting" << endl;
+                     }
 
                     break;
 
@@ -339,7 +334,7 @@ void receiveMessage () {
                     //is it over?
                     if (status.MPI_TAG == MSG_TOKEN_WHITE) {
                         //its over.
-//                                   
+                        // I can quit calculation loop
                         finished=true;
                     } else {
                         //someone was black. do yet another round.
@@ -363,8 +358,9 @@ void receiveMessage () {
 
                     //best mam.
                     best.serialize(message, bufS);
+                    cout << "P" << process_rank << ":" << " sending my best to P0!" << endl;
                     MPI_Send(message, strlen(message) + 1, MPI_CHAR, 0, MSG_MY_BEST, MPI_COMM_WORLD);
-
+                    MPI_Barrier(MPI_COMM_WORLD);
                     MPI_Finalize();
                     exit(0);
                     break;
@@ -372,24 +368,19 @@ void receiveMessage () {
                 case MSG_MY_BEST:
                     if (process_rank == 0) {
                         // receive and try to figure out, who's the best..
-
-                        MPI_Recv(message, LENGTH, MPI_CHAR, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
                         cout << "P" << process_rank << ":FINALE received: " << message  << "  from P" << status.MPI_SOURCE << endl;
 
                         Node akt;
                         akt.deserialize(message, bufS);
 
                         //is akt better than my best?
-                        cout << "P0: comparing " << akt.calculateValue(&values) << " <? " << bestValue << endl;
-
                         if (akt.calculateValue(&values) > bestValue) {
 
                             best = akt;
                             bestValue = best.calculateValue(&values);
-                            cout << "P0: best changed to " << bestValue << endl;
+                            //cout << "P0: best changed to " << bestValue << endl;
                             best.print(process_rank);
                         }
-
                     } else {
                         cerr << "P" << process_rank << ":" << "Pnot0 should never receive MSG_MY_BEST!" << endl;
                     }
@@ -398,9 +389,10 @@ void receiveMessage () {
 
                     //did everything call home?
                     if (locals_received_count == processes - 1) {
+                        
                         finished = true;
                     }
-
+                    
                     break;
                 default:
                     cerr << "unrecognized message type" << endl;
@@ -416,8 +408,7 @@ void receiveMessage () {
             check_next_message = false;
         }
     }
-    cout << "P" << process_rank << ":" << " Leaving message handling" << endl;
-}
+  }
 
 int main(int argc, char** argv) {
 
@@ -426,10 +417,13 @@ int main(int argc, char** argv) {
     MPI_Comm_rank(MPI_COMM_WORLD, &process_rank);
     MPI_Comm_size(MPI_COMM_WORLD, &processes);
 
-
+    
+    double t1 = 0;
     sprintf(message, "There are %d processes.\n", processes); //==message
     if (process_rank == 0) {
         printf("P%d:%s", process_rank, message); //P0 saying how many processes there are
+        MPI_Barrier (MPI_COMM_WORLD);
+        t1 = MPI_Wtime();
     }
 
     //check arguments
@@ -475,7 +469,6 @@ int main(int argc, char** argv) {
 
         } else {
             //not parallel
-            //strcpy("shutdown this thread, not parallel :)", message);
             for (int i = 1; i < processes; i++) {
                 MPI_Send(message, strlen(message) + 1, MPI_CHAR, i, MSG_INIT_NO_WORK, MPI_COMM_WORLD);
             }
@@ -483,6 +476,7 @@ int main(int argc, char** argv) {
 
     } else {
         //procesor not 0 - Pi is waiting for work from P0
+        MPI_Barrier (MPI_COMM_WORLD);
         MPI_Recv(message, LENGTH, MPI_CHAR, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
         
 
@@ -510,17 +504,7 @@ int main(int argc, char** argv) {
             cerr << "P" << process_rank << ": init msg error" << endl;
         }
     }
-
     //init done.
-    
-
-    //now they have to "work" and check for messages (MSG_WANT_WORK,MSG_TERM)
-    //and eventually send some (MSG_SENDING_WORK, MSG_NO_WORK, MSG_MY_BEST
-    //tzn. pouzivat neblokujici I fce.
-
-
-
-    
     //controls for paralel program
     int flag;
 
@@ -537,18 +521,17 @@ int main(int argc, char** argv) {
                 procedeNode(&bestValue, akt, &best, &bagSize, &volumes, &values, &stack1, items_count);
             } else {
                 // if iam p0, and i havent sent token yet, do it now.
-                cout << "P" << process_rank << ": Stack is empty" << endl;
                 if (process_rank == 0 && p0_token_already_sent==false) {
 
                     MPI_Send(message, strlen(message) + 1, MPI_CHAR, (process_rank +1) % processes, MSG_TOKEN_WHITE, MPI_COMM_WORLD);
                     p0_token_already_sent=true;
-                    cout << "P" << process_rank << ":" << "Token sent to  " << donator_next << endl;
+                    cout << "P" << process_rank << ":" << " Token sent to  " << donator_next << endl;
                 }
                     //iam out of work... so I send request to another process
-                    cout << "P" << process_rank << ":" << "Request for work sent to P" << donator_next << endl;
+                    cout << "P" << process_rank << ":" << " Request for work sent to P" << donator_next << endl;
                     MPI_Send(message, strlen(message) + 1, MPI_CHAR, donator_next, MSG_WORK_REQUEST, MPI_COMM_WORLD);
                     waiting_for_data=true;
-
+                    no_failed_data_req++;
                     //calculation of next donator
                     donator_next = (donator_next +1) % processes;
 
@@ -556,10 +539,8 @@ int main(int argc, char** argv) {
                     if (donator_next==process_rank) {
                         donator_next = (donator_next +1) % processes;
                     }
-
                     receiveMessage();
                     citac = 0;
-
             }
             citac++; //inc. couter when we reach check_msg_amount, we will check for messages
 
@@ -568,16 +549,11 @@ int main(int argc, char** argv) {
                 //cout << "P" << process_rank << ": Couter full, im going to check messages" << endl;
                 MPI_Iprobe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &flag, &status);
                 if (flag) {
-                    //prisla zprava, je treba ji obslouzit
-                    //v promenne status je tag (status.MPI_TAG), cislo odesilatele (status.MPI_SOURCE)
-                    //a pripadne cislo chyby (status.MPI_ERROR)
-                    cout << "P" << process_rank << ": There is message, lets receive it" << endl;
                     receiveMessage();
                 }
                 //protection against overflow of int during long calculations
                 citac=0;
             }
-
         }
         //finished flag is true. I send finish message to all procesess
          for (int i = 1; i < processes; i++) {
@@ -597,6 +573,12 @@ int main(int argc, char** argv) {
     }
 
     //all threads are finished with work and the winner is known:
+    //I will return with P0 into messageReceive cycle and keep it here using waiting_for_data and finished
+    //until all data are collected
+    waiting_for_data = true;
+    finished = false;
+    receiveMessage();
+    
     cout << "P" << process_rank << ":" << "solution with the value of " << best.calculateValue(&values) << " is:" << endl;
     best.print(process_rank);
 
@@ -604,6 +586,10 @@ int main(int argc, char** argv) {
     if (process_rank != 0) {
         cerr << "P" << process_rank << ":" << "noone should reach the endpoint!" << endl;
     }
+
+    MPI_Barrier (MPI_COMM_WORLD);
+    double t2 = MPI_Wtime();
+    cout << "Spotrebovany cas je: " << t2 - t1 << endl;
 
     MPI_Finalize();
     return 0;
