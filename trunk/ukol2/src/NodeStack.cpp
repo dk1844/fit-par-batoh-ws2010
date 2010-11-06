@@ -1,7 +1,7 @@
-/* 
+/*
  * File:   NodeStack.cpp
  * Author: Daniel
- * 
+ *
  * Created on 4. listopad 2010, 13:41
  */
 
@@ -24,11 +24,11 @@ bool NodeStack::empty() {
 }
 
 void NodeStack::pop() {
-    mystack.pop_front(); 
+    mystack.pop_front();
 }
 
 Node NodeStack::top(){
-    return mystack.front(); 
+    return mystack.front();
 }
 
 void NodeStack::push(const Node& node) {

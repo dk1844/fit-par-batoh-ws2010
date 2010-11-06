@@ -1,4 +1,4 @@
-/* 
+/*
  * File:   NodeStack.h
  * Author: Daniel
  *
@@ -25,7 +25,7 @@ public:
     NodeStack();
     NodeStack(const NodeStack& orig);
     virtual ~NodeStack();
-    
+
     /**
      * empty() wrapper around stack/queue methods
      * @return true if empty, false otherwise
@@ -37,7 +37,7 @@ public:
      */
     int size();
     /**
-     * top/front() wrapper around stack/queue methods. 
+     * top/front() wrapper around stack/queue methods.
      * @return Node on the top or at the front.
      */
     Node top();
@@ -74,8 +74,8 @@ public:
      */
     bool isBehaviorQueue();
 
-    
-    
+
+
 private:
     int _behavior;  //DFS or BFS; DFS is default
     deque<Node> mystack;
