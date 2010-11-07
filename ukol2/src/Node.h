@@ -68,8 +68,7 @@ public:
      * @return true if the item is inside of the bag, false otherwise
      */
     bool isItemAt(int index);
-
-    /**
+       /**
      * Sets an item to be or not to be inside the bag
      * Part of 'binary vector <-> bitwise' encapsulation
      * @param index index of the item
@@ -107,7 +106,7 @@ public:
     void setItemsCount(int count);
 
     bool serialize(char * buffer, int &bufferSize);
-    bool deserialize(char * buffer, int bufferSize);
+    bool deserialize(const char * buffer, int bufferSize);
 
 
     char getMask(int index);

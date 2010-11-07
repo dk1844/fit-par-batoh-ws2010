@@ -106,9 +106,47 @@ template<class T> void printVector(vector<T> * vect1, char * name = "") {
     }
     cout << endl;
 }
+bool unpackMessage(char * buffer, int buffS){
+    string msgTemp;
+    string serial;
+    int bufferSize = buffS;
+    serial.clear();
+    serial = buffer;
+    string tmp;
+    int emprTagPosition = 0;
+    int endTagPosition = 0;
+    Node akt;
+    //start of file... we check, if the & is present here and remove it
 
-void generateMessage(char * buffer, int &bufferSize){
-    char message[100];
+    tmp = serial.substr(0,1);
+    //todo, handle, if there is no end tag
+    endTagPosition = serial.find("&&");
+    serial = serial.substr(1,serial.length());
+
+
+    if(tmp.compare("&")!=0 || endTagPosition==-1){
+        // message doesnt contains valid data
+        return false;
+    } else {
+        //remove first &
+        while(endTagPosition != emprTagPosition){
+
+            emprTagPosition = serial.find("&");
+            endTagPosition = serial.find("&&");
+
+            msgTemp = serial.substr(0,emprTagPosition + 1);
+            serial = serial.substr(emprTagPosition + 1, serial.length());
+
+            akt.deserialize(msgTemp.c_str(),bufferSize);
+            stack1.push(akt);
+        }
+    }
+    return true;
+}
+
+
+void generateMessage(char * buffer, int bufferSize){
+    char message[bufferSize];
     stringstream sstr;
     Node akt = stack1.top();
     //get maximum number of nodes to send
@@ -121,6 +159,7 @@ void generateMessage(char * buffer, int &bufferSize){
     int msgBuffer = 0;
     // generally, we will send same number of nodes as items count
     //if there is not enough nodes in stack, we will send on hlaf of stack
+    
     if(halfOfStack < noItems) {
         itemsToBeAdded = halfOfStack;
     } else {
@@ -129,7 +168,7 @@ void generateMessage(char * buffer, int &bufferSize){
 
     sstr.clear();
     sstr.flush();
-
+    //cout << "P" << process_rank << ": generating message: halfOfStack:" << halfOfStack << " :itemsToBeAdded: " << itemsToBeAdded << endl;
     //insert number of Nodes in message
     //sstr << "&&" << stack1.size() << "&";
 
@@ -138,19 +177,23 @@ void generateMessage(char * buffer, int &bufferSize){
         akt.serialize(message,msgBuffer);
 
         //if my msg is smaller than free space in buffer, add it
-        // -1 is saving space for last &
-        if( msgBuffer + 1 < bufferSize - msgLenght - 1){
+        // -2 is saving space for last &&, which is signalizeing end of buffer
+        if( msgBuffer + 1 < bufferSize - msgLenght - 2){
             sstr << "&" << message;
             stack1.pop();
             msgLenght+= strlen(message) + 1;
         } else {
+            //cout << "P" << process_rank << ": Buffer is small:" << bufferSize << ":msgBuffer: " << msgBuffer << ": msgLength " << msgLenght << endl;
             break;
         }
-        sstr << "&";
+        
     }
+    sstr << "&&";
+    //cout << "P" << process_rank << ": messageGenerated:" << buffer << endl;
     string res = sstr.str();
     bufferSize = res.length();
     strcpy(buffer, res.c_str());
+
  }
 
 /**
@@ -306,15 +349,16 @@ void receiveMessage () {
                     // zaslat rozdeleny zasobnik a nebo odmitnuti MSG_WORK_NOWORK
                     cout << "P" << process_rank << ": WORK_REQUEST_RECEIVED from P" << status.MPI_SOURCE << endl;
 
-                    //if my stack is empty, send no_work_request
-                    if(stack1.empty()==true){
+                    //if my stack is empty or if it has only one value, send no_work_request
+                    if(stack1.size() < 2){
+                    //if(!stack1.empty()){
                         MPI_Send(message, strlen(message) + 1, MPI_CHAR, status.MPI_SOURCE, MSG_WORK_NOWORK, MPI_COMM_WORLD);
                     } else {
 
-                        Node akt = stack1.top();
-                        stack1.pop(); //remove top
-                        akt.serialize(message, bufS);
-                        cout << "P" << process_rank << ": data has been sent to P" << status.MPI_SOURCE << endl; 
+//                        Node akt = stack1.top();
+//                        stack1.pop(); //remove top
+//                        akt.serialize(message, bufS);
+                        generateMessage(message,bufS);
                         MPI_Send(message, strlen(message) + 1, MPI_CHAR, status.MPI_SOURCE, MSG_WORK_SENT, MPI_COMM_WORLD);
 
                         if (process_rank > status.MPI_SOURCE) {
@@ -327,9 +371,11 @@ void receiveMessage () {
 
                     cout << "P" << process_rank << ":Data received from P" << status.MPI_SOURCE << ": message:" << message << endl;
 
-                    thisProot.deserialize(message, bufS);
+                    unpackMessage(message,bufS);
                     //put my root to stack
-                    stack1.push(thisProot);
+                    //thisProot.deserialize(message, bufS);
+                    //put my root to stack
+                    //stack1.push(thisProot);
                     //I have new data so I can start calculation again
                     waiting_for_data = false;
                     //erase counter of unseccessful tries for data
