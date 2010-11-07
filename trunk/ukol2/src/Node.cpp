@@ -257,7 +257,7 @@ bool Node::serialize(char * buffer, int &bufferSize) {
     return true;
 }
 
-bool Node::deserialize(char * buffer, int bufferSize) {
+bool Node::deserialize(const char * buffer, int bufferSize) {
     /* string a;
     a = buffer;
 
