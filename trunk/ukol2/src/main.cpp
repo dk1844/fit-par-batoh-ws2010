@@ -30,6 +30,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <sstream>
 
 #include "mpi.h"
 
@@ -105,6 +106,52 @@ template<class T> void printVector(vector<T> * vect1, char * name = "") {
     }
     cout << endl;
 }
+
+void generateMessage(char * buffer, int &bufferSize){
+    char message[100];
+    stringstream sstr;
+    Node akt = stack1.top();
+    //get maximum number of nodes to send
+    //this value will be between number of items and half of the nodes in stack
+    int noItems = akt.getItemsCount();
+    int halfOfStack = stack1.size() / 2;
+    int itemsAdded = 0;
+    int itemsToBeAdded = 0;
+    int msgLenght = 0;
+    int msgBuffer = 0;
+    // generally, we will send same number of nodes as items count
+    //if there is not enough nodes in stack, we will send on hlaf of stack
+    if(halfOfStack < noItems) {
+        itemsToBeAdded = halfOfStack;
+    } else {
+        itemsToBeAdded = noItems;
+    }
+
+    sstr.clear();
+    sstr.flush();
+
+    //insert number of Nodes in message
+    //sstr << "&&" << stack1.size() << "&";
+
+    for(int i = 0; i <= itemsToBeAdded; i++ ) {
+        akt = stack1.top();
+        akt.serialize(message,msgBuffer);
+
+        //if my msg is smaller than free space in buffer, add it
+        // -1 is saving space for last &
+        if( msgBuffer + 1 < bufferSize - msgLenght - 1){
+            sstr << "&" << message;
+            stack1.pop();
+            msgLenght+= strlen(message) + 1;
+        } else {
+            break;
+        }
+        sstr << "&";
+    }
+    string res = sstr.str();
+    bufferSize = res.length();
+    strcpy(buffer, res.c_str());
+ }
 
 /**
  * Loads data from filename into vectors volume and value
@@ -244,6 +291,8 @@ bool initDivide(vector<float> * volumes, NodeStack * stack1, float bagSize, int 
     }
     return true; //parallel ok
 }
+
+
 
 void receiveMessage () {
     //blocking receive
