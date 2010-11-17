@@ -312,6 +312,8 @@ void procedeNode(float * bestValue, Node root, Node * best, float * bagSize, vec
 bool initDivide(vector<float> * volumes, NodeStack * stack1, float bagSize, int processes) {
 //bool initDivide(vector<float> * volumes, stack<Node> * stack1, float bagSize, int processes) {
 
+    if (processes == 1) return false;
+
     while ((*stack1).size() < processes && !(*stack1).empty()) {
         Node akt = (*stack1).top();
         (*stack1).pop(); //remove top
@@ -563,9 +565,12 @@ int main(int argc, char** argv) {
             }
 
         } else {
+
+            if (processes != 1)  {
             //not parallel
             for (int i = 1; i < processes; i++) {
                 MPI_Send(message, strlen(message) + 1, MPI_CHAR, i, MSG_INIT_NO_WORK, MPI_COMM_WORLD);
+            }
             }
         }
 
@@ -670,10 +675,11 @@ int main(int argc, char** argv) {
     //all threads are finished with work and the winner is known:
     //I will return with P0 into messageReceive cycle and keep it here using waiting_for_data and finished
     //until all data are collected
+    if(isParallel) {
     waiting_for_data = true;
     finished = false;
     receiveMessage();
-    
+    }
     cout << "P" << process_rank << ":" << "solution with the value of " << best.calculateValue(&values) << " is:" << endl;
     best.print(process_rank);
 
