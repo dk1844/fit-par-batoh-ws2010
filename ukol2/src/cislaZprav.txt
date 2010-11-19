@@ -29,3 +29,11 @@
 
 #define MSG_FINISH 400 //: Ukoncuji
 #define MSG_MY_BEST 401 //: "Send me your best"
+
+
+
+Max. slots for queue is:
+(queue) fast:     max. slots = 8
+(queue) short:    max. slots = 16
+(queue) default:  max. slots = 8
+(queue) long:     max. slots = 32

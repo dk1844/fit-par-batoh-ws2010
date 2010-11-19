@@ -88,6 +88,8 @@ bool token_received = false;
 int max_data_requests = 0;
 int no_failed_data_req = 0;
 
+bool printDebug = false;
+
     //stack<Node> stack1;
 /**
  * Print the content of a vecor
@@ -238,7 +240,7 @@ void loadDataFromFile(char * filename, int * items_cnt, vector<float> * volume, 
     (*volume).resize(count);
     (*value).resize(count);
 
-    cout << "P" << pid << ": Loading data: (2x" << count << " values)." << endl;
+    if(printDebug)      cout << "P" << pid << ": Loading data: (2x" << count << " values)." << endl;
 
     for (int i = 0; i < count; i++) {
         fp_in >> float_val;
@@ -263,6 +265,7 @@ void loadDataFromFile(char * filename, int * items_cnt, vector<float> * volume, 
     fp_in >> dummy;
     if (!fp_in.eof()) {
         cerr << "WARNING: file should have ended, skipping the rest.." << endl;
+        // MPI_Finalize();
         // exit(1);
     }
 
@@ -329,13 +332,13 @@ bool initDivide(vector<float> * volumes, NodeStack * stack1, float bagSize, int 
             (*stack1).push(a);
 
             if (b.getCurrentVolume() > bagSize) {
-                cout << "DEBUG=pre0: Volume of " << b.getCurrentVolume() << " would be too much, cutting BB-branch" << endl;
+                if(printDebug)  cout << "DEBUG=pre0: Volume of " << b.getCurrentVolume() << " would be too much, cutting BB-branch" << endl;
             } else {
                 (*stack1).push(b);
             }
 
         } else {
-            cout << "P0:Data too small -> serial job." << endl;
+            if(printDebug)  cout << "P0:Data too small -> serial job." << endl;
             return false; //only p0 solving!
         }
     }
@@ -354,7 +357,7 @@ void receiveMessage () {
         switch (status.MPI_TAG) {
                 case MSG_WORK_REQUEST: // zadost o praci, prijmout a dopovedet
                     // zaslat rozdeleny zasobnik a nebo odmitnuti MSG_WORK_NOWORK
-                    cout << "P" << process_rank << ": WORK_REQUEST_RECEIVED from P" << status.MPI_SOURCE << endl;
+                    if(printDebug)  cout << "P" << process_rank << ": WORK_REQUEST_RECEIVED from P" << status.MPI_SOURCE << endl;
 
                     //if my stack is empty or if it has only one value, send no_work_request
                     if(stack1.size() < 2){
@@ -376,7 +379,7 @@ void receiveMessage () {
                 case MSG_WORK_SENT: // prisel rozdeleny zasobnik, prijmout
                     // deserializovat a spustit vypocet
 
-                    cout << "P" << process_rank << ":Data received from P" << status.MPI_SOURCE << ": message:" << message << endl;
+                    if(printDebug)  cout << "P" << process_rank << ":Data received from P" << status.MPI_SOURCE << ": message:" << message << endl;
 
                     unpackMessage(message,bufS);
                     //put my root to stack
@@ -391,7 +394,7 @@ void receiveMessage () {
                 case MSG_WORK_NOWORK: // odmitnuti zadosti o praci
                     // zkusit jiny proces
                     // a nebo se prepnout do pasivniho stavu a cekat na token
-                    cout << "P" << process_rank << ":NO WORK Received from from P" << status.MPI_SOURCE << ":" << " Request for work sent to P" << donator_next << endl;
+                    if(printDebug)  cout << "P" << process_rank << ":NO WORK Received from from P" << status.MPI_SOURCE << ":" << " Request for work sent to P" << donator_next << endl;
                     
                     //there is only limited unsuccessful requests for work
                     if(max_data_requests >= no_failed_data_req ){
@@ -407,7 +410,7 @@ void receiveMessage () {
                             donator_next = (donator_next +1) % processes;
                         }
                      } else {
-                        cout << "P" << process_rank << ": I cannot ask for other work... waiting" << endl;
+                        if(printDebug)  cout << "P" << process_rank << ": I cannot ask for other work... waiting" << endl;
                      }
 
                     break;
@@ -427,7 +430,7 @@ void receiveMessage () {
                         //If iam white I dont care about token value and send it to next P
                         msgToSend = status.MPI_TAG;
                     }
-                    cout << "P" << process_rank << ": TOKEN SENT:" << msgToSend << endl;
+                    if(printDebug)  cout << "P" << process_rank << ": TOKEN SENT:" << msgToSend << endl;
                     MPI_Send(message, strlen(message) + 1, MPI_CHAR, (process_rank + 1) % processes, msgToSend, MPI_COMM_WORLD);
                 } else {
                     //this is zero, received token and..
@@ -451,8 +454,7 @@ void receiveMessage () {
                     //nasledne ukoncim spoji cinnost
                     //jestlize se meri cas, nezapomen zavolat koncovou barieru MPI_Barrier (MPI_COMM_WORLD)
                     if (process_rank != 0) {
-                        cout << "P" << process_rank << ":" << "OK, here it is, the LOCAL! solution seems to be"
-                                << "with the best value of :" << bestValue << "." << endl;
+                        cout << "P" << process_rank << ":" << "LOCAL best value is: " << bestValue << "." << endl;
                         //best.print(process_rank);
                     } else {
                         cerr << "P" << process_rank << ":" << "P0 should never receive MSG_FINISH!" << endl;
@@ -460,7 +462,7 @@ void receiveMessage () {
 
                     //best mam.
                     best.serialize(message, bufS);
-                    cout << "P" << process_rank << ":" << " sending my best to P0!" << endl;
+                    if(printDebug)  cout << "P" << process_rank << ":" << " sending my best to P0!" << endl;
                     MPI_Send(message, strlen(message) + 1, MPI_CHAR, 0, MSG_MY_BEST, MPI_COMM_WORLD);
                     MPI_Barrier(MPI_COMM_WORLD);
                     MPI_Finalize();
@@ -470,7 +472,7 @@ void receiveMessage () {
                 case MSG_MY_BEST:
                     if (process_rank == 0) {
                         // receive and try to figure out, who's the best..
-                        cout << "P" << process_rank << ":FINALE received: " << message  << "  from P" << status.MPI_SOURCE << endl;
+                        if(printDebug)  cout << "P" << process_rank << ":FINALE received: " << message  << "  from P" << status.MPI_SOURCE << endl;
 
                         Node akt;
                         akt.deserialize(message, bufS);
@@ -481,7 +483,7 @@ void receiveMessage () {
                             best = akt;
                             bestValue = best.calculateValue(&values);
                             //cout << "P0: best changed to " << bestValue << endl;
-                            best.print(process_rank);
+                            if(printDebug) best.print(process_rank);
                         }
                     } else {
                         cerr << "P" << process_rank << ":" << "Pnot0 should never receive MSG_MY_BEST!" << endl;
@@ -512,6 +514,35 @@ void receiveMessage () {
     }
   }
 
+bool checkInput(int * argc, char *** argv) {
+    //this is how to use it :)
+    //cout << (* argc) << endl;
+    //cout << (* argv)[0] ;
+    int ac = (*argc);
+    bool isDebug = false;
+
+    if (ac < 2 || ac > 3) {
+        cerr << "Incorrect number of arguments!" << endl;
+        cerr << "USAGE : " << (*argv)[0] << " <filename> [--debug]" << endl;
+        exit(1);
+        MPI_Finalize();
+    }
+
+
+    if (ac == 3) {
+        isDebug = (strcmp((*argv)[2],"--debug") == 0); // match?
+
+        if(!isDebug) {
+            cerr << "Incorrect argments!" << endl;
+            cerr << "USAGE : " << (*argv)[0] << " <filename> [--debug]" << endl;
+            exit(2);
+            MPI_Finalize();
+        }
+    }
+
+    return isDebug;
+}
+
 int main(int argc, char** argv) {
 
     /**/
@@ -519,6 +550,8 @@ int main(int argc, char** argv) {
     MPI_Comm_rank(MPI_COMM_WORLD, &process_rank);
     MPI_Comm_size(MPI_COMM_WORLD, &processes);
 
+    //check arguments
+    printDebug = checkInput(&argc, &argv);
     
     double t1 = 0;
     sprintf(message, "There are %d processes.\n", processes); //==message
@@ -526,13 +559,6 @@ int main(int argc, char** argv) {
         printf("P%d:%s", process_rank, message); //P0 saying how many processes there are
         MPI_Barrier (MPI_COMM_WORLD);
         t1 = MPI_Wtime();
-    }
-
-    //check arguments
-    if (argc != 2) {
-        cerr << "# arguments found = " << (argc - 1) << endl;
-        cerr << "USAGE : \"" << argv[0] << " <filename>" << endl;
-        return 3;
     }
 
     donator_next = (process_rank + 1) % processes;
@@ -559,7 +585,7 @@ int main(int argc, char** argv) {
     if (process_rank == 0) {
 
         if (isParallel) {
-            cout << "P0:processes expanded to #" << stack1.size() << endl;
+          if(printDebug)  cout << "P0:processes expanded to #" << stack1.size() << endl;
 
             for (int i = 1; i < processes; i++) {
                 Node akt = stack1.top();
@@ -586,8 +612,8 @@ int main(int argc, char** argv) {
         
 
         if (status.MPI_TAG == MSG_INIT_WORK) {
-            cout << "P" << process_rank << ": received: " << message << endl;
-            cout << "P" << process_rank << ": Starting calculation" << endl;
+            if(printDebug)  cout << "P" << process_rank << ": received: " << message << endl;
+            if(printDebug)  cout << "P" << process_rank << ": Starting calculation" << endl;
             //data recieved from P0, I can start with calculation
             isParallel = true;
             int BS = LENGTH;
@@ -615,7 +641,7 @@ int main(int argc, char** argv) {
 
     //PID of next donator of data. Need to be init after creating of proceses
     
-    cout << "P" << process_rank << ": My next donator:" << donator_next << endl;
+    if(printDebug)  cout << "P" << process_rank << ": My next donator:" << donator_next << endl;
     if (isParallel) { /**/
         while (!finished) //ukoncime jen, kdyz bude stack prazdny a finished true.
         {
@@ -630,10 +656,10 @@ int main(int argc, char** argv) {
 
                     MPI_Send(message, strlen(message) + 1, MPI_CHAR, (process_rank +1) % processes, MSG_TOKEN_WHITE, MPI_COMM_WORLD);
                     p0_token_already_sent=true;
-                    cout << "P" << process_rank << ":" << " Token sent to  " << donator_next << endl;
+                    if(printDebug)  cout << "P" << process_rank << ":" << " Token sent to  " << donator_next << endl;
                 }
                     //iam out of work... so I send request to another process
-                    cout << "P" << process_rank << ":" << " Request for work sent to P" << donator_next << endl;
+                    if(printDebug)  cout << "P" << process_rank << ":" << " Request for work sent to P" << donator_next << endl;
                     MPI_Send(message, strlen(message) + 1, MPI_CHAR, donator_next, MSG_WORK_REQUEST, MPI_COMM_WORLD);
                     waiting_for_data=true;
                     no_failed_data_req++;
@@ -663,12 +689,12 @@ int main(int argc, char** argv) {
         //finished flag is true. I send finish message to all procesess
          for (int i = 1; i < processes; i++) {
              MPI_Send(message, strlen(message) + 1, MPI_CHAR, i, MSG_FINISH, MPI_COMM_WORLD);
-             cout << "P" << process_rank << ":" << " FINISH MESSAGE TO: " << "P" << i << endl;
+             if(printDebug)  cout << "P" << process_rank << ":" << " FINISH MESSAGE TO: " << "P" << i << endl;
          }
         //isParallel part done
     } else {
         //it a serial job
-        cout << "P" << process_rank << ":" << "Performing a serial job, cuz the data is too small to bother or just one thread available :)" << endl;
+        cout << "P" << process_rank << ":" << "Performing a serial job." << endl;
         //work!
         while (!stack1.empty()) {
             Node akt = stack1.top();
