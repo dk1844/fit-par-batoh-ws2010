@@ -37,7 +37,7 @@
 #include "Node.h"
 #include "NodeStack.h"
 
-#define LENGTH 100
+#define LENGTH 1000
 #define CHECK_MSG_AMOUNT 100
 
 //tags
@@ -71,7 +71,7 @@ MPI_Status status;
 Node best; // containing the right-now best leaf node.
 float bestValue = 0;
 int locals_received_count = 0;
-int bufS = 100;
+int bufS = LENGTH;
 bool im_done_too;
  //declare vectors for input data
 vector<float> volumes;
@@ -210,6 +210,7 @@ void loadDataFromFile(char * filename, int * items_cnt, vector<float> * volume, 
     //cout << fp_in << endl;
     if (!fp_in) {
         cerr << "P" << pid << ":File could not be opened" << endl;
+        MPI_Finalize();
         exit(1);
     }
 
@@ -220,6 +221,7 @@ void loadDataFromFile(char * filename, int * items_cnt, vector<float> * volume, 
     fp_in >> count; // input from file pointer or standard input
     if (!fp_in.good()) {
         cerr << "Wrong format" << endl;
+        MPI_Finalize();
         exit(1);
     }
 
@@ -229,6 +231,7 @@ void loadDataFromFile(char * filename, int * items_cnt, vector<float> * volume, 
     fp_in >> float_val; // input from file pointer or standard input
     if (!fp_in.good()) {
         cerr << "Wrong format" << endl;
+        MPI_Finalize();
         exit(1);
     }
     (*bagSize) = float_val;
@@ -241,6 +244,7 @@ void loadDataFromFile(char * filename, int * items_cnt, vector<float> * volume, 
         fp_in >> float_val;
         if (!fp_in.good()) {
             cerr << "Wrong format inside" << endl;
+            MPI_Finalize();
             exit(1);
         }
         (*volume)[i] = float_val;
@@ -248,6 +252,7 @@ void loadDataFromFile(char * filename, int * items_cnt, vector<float> * volume, 
         fp_in >> float_val;
         if (!fp_in.good()) {
             cerr << "Wrong format inside" << endl;
+            MPI_Finalize();
             exit(1);
         }
         (*value)[i] = float_val;
@@ -559,7 +564,7 @@ int main(int argc, char** argv) {
             for (int i = 1; i < processes; i++) {
                 Node akt = stack1.top();
                 stack1.pop(); //remove top
-                int bufS = 100;
+                int bufS = LENGTH;
                 akt.serialize(message, bufS);
                 MPI_Send(message, strlen(message) + 1, MPI_CHAR, i, MSG_INIT_WORK, MPI_COMM_WORLD);
             }
@@ -585,7 +590,7 @@ int main(int argc, char** argv) {
             cout << "P" << process_rank << ": Starting calculation" << endl;
             //data recieved from P0, I can start with calculation
             isParallel = true;
-            int BS = 100;
+            int BS = LENGTH;
             //take data from message
             thisProot.deserialize(message, BS);
 
@@ -663,7 +668,7 @@ int main(int argc, char** argv) {
         //isParallel part done
     } else {
         //it a serial job
-        cout << "P" << process_rank << ":" << "Performing a serial job, cuz the data is too small to bother :)" << endl;
+        cout << "P" << process_rank << ":" << "Performing a serial job, cuz the data is too small to bother or just one thread available :)" << endl;
         //work!
         while (!stack1.empty()) {
             Node akt = stack1.top();
