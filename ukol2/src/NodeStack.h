@@ -7,6 +7,7 @@
 
 #include "Node.h"
 #include <stack>
+#include <stdio.h>
 
 
 #ifndef NODESTACK_H
@@ -76,11 +77,7 @@ public:
 
     const char * getBehaviorAsText();
 
-    void printStackBehavior(){
-
-        printf("StackType: %s \n", this->getBehaviorAsText());
-        
-    }
+    void printStackBehavior();
 
 
 private:
