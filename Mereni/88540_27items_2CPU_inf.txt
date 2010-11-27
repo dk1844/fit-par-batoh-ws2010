@@ -1,0 +1,18 @@
+P0:There are 2 processes.
+P1: Loading data: (2x27 values).
+P0: Loading data: (2x27 values).
+P0:processes expanded to #2
+P0: My next donator:1
+P1: received: 27 1 2 100000000000000000000000000
+P1: Starting calculation
+P1: My next donator:0
+P0: Token sent to  1
+P0:solution with the value of 2960 is:
+---Node Content:--- (0)
+P0:Vector content: <0 0 1 1 1 1 1 1 0 0 1 1 1 1 1 1 1 0 1 1 1 0 1 1 1 0 1 >
+P0:Volume: 349
+P0:Depth: 27
+P0:Expandable: NO
+P1:OK, here it is, the LOCAL! solution seems to bewith the best value of :3019.
+P1: sending my best to P0!
+Spotrebovany cas je: 280.836

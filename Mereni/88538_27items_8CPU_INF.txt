@@ -1,0 +1,71 @@
+P0:There are 8 processes.
+P2: Loading data: (2x27 values).
+P1: Loading data: (2x27 values).
+P3: Loading data: (2x27 values).
+P5: Loading data: (2x27 values).
+P4: Loading data: (2x27 values).
+P6: Loading data: (2x27 values).
+P7: Loading data: (2x27 values).
+P0: Loading data: (2x27 values).
+P0:processes expanded to #8
+P1: received: 27 7 83 111111100000000000000000000
+P2: received: 27 7 65 111111000000000000000000000
+P2: Starting calculation
+P1: Starting calculation
+P2: My next donator:3
+P1: My next donator:2
+P4: received: 27 5 36 111100000000000000000000000
+P4: Starting calculation
+P3: received: 27 6 39 111110000000000000000000000
+P3: Starting calculation
+P4: My next donator:5
+P3: My next donator:4
+P5: received: 27 4 11 111000000000000000000000000
+P5: Starting calculation
+P5: My next donator:6
+P6: received: 27 3 10 110000000000000000000000000
+P6: Starting calculation
+P6: My next donator:7
+P0: My next donator:1
+P7: received: 27 2 2 100000000000000000000000000
+P7: Starting calculation
+P7: My next donator:0
+P0: Token sent to  1
+P0:FINALE received: 27 27 343 111111110111111110011011101  from P1
+---Node Content:--- (0)
+P2:OK, here it is, the LOCAL! solution seems to bewith the best value of :2982.
+P1:OK, here it is, the LOCAL! solution seems to bewith the best value of :2991.
+P1: sending my best to P0!
+P3:OK, here it is, the LOCAL! solution seems to bewith the best value of :2911.
+P3: sending my best to P0!
+P0:Vector content: <1 1 1 1 1 1 1 1 0 1 1 1 1 1 1 1 1 0 0 1 1 0 1 1 1 0 1 >
+P0:Volume: 343
+P0:Depth: 27
+P0:Expandable: NO
+P2: sending my best to P0!
+P0:FINALE received: 27 27 341 111111010011111110111011101  from P2
+P0:FINALE received: 27 27 326 101101010001111110111011101  from P3
+P4:OK, here it is, the LOCAL! solution seems to bewith the best value of :2974.
+P6:OK, here it is, the LOCAL! solution seems to bewith the best value of :2833.
+P7:OK, here it is, the LOCAL! solution seems to bewith the best value of :3019.
+P5:OK, here it is, the LOCAL! solution seems to bewith the best value of :2835.
+P0:FINALE received: 27 27 347 101111110011111110011111101  from P7
+---Node Content:--- (0)
+P0:Vector content: <1 0 1 1 1 1 1 1 0 0 1 1 1 1 1 1 1 0 0 1 1 1 1 1 1 0 1 >
+P0:Volume: 347
+P0:Depth: 27
+P0:Expandable: NO
+P0:FINALE received: 27 27 340 111101110111111110011011101  from P4
+P7: sending my best to P0!
+P6: sending my best to P0!
+P5: sending my best to P0!
+P4: sending my best to P0!
+P0:FINALE received: 27 27 350 111011010011111110111111101  from P5
+P0:FINALE received: 27 27 342 110111110111111110011011101  from P6
+P0:solution with the value of 3019 is:
+---Node Content:--- (0)
+P0:Vector content: <1 0 1 1 1 1 1 1 0 0 1 1 1 1 1 1 1 0 0 1 1 1 1 1 1 0 1 >
+P0:Volume: 347
+P0:Depth: 27
+P0:Expandable: NO
+Spotrebovany cas je: 271.816
