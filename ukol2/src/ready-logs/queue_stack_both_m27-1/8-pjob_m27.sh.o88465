@@ -1,0 +1,18 @@
+P0:There are 8 processes.
+StackType: STACK 
+for init division purposes:StackType: QUEUE 
+StackType: STACK 
+P0:solution with the value of 3538 is:
+P3:LOCAL best value is: 3389.
+---Node Content:--- (0)
+P5:LOCAL best value is: 3482.
+P0:Vector content: <1 1 1 1 1 1 0 1 1 1 1 1 1 1 1 1 1 1 0 1 1 1 1 0 0 0 1 >
+P0:Volume: 348
+P1:LOCAL best value is: 3314.
+P0:Depth: 27
+P4:LOCAL best value is: 3409.
+P0:Expandable: NO
+P6:LOCAL best value is: 3462.
+P7:LOCAL best value is: 3516.
+P2:LOCAL best value is: 3334.
+Spotrebovany cas je: 66.0471
