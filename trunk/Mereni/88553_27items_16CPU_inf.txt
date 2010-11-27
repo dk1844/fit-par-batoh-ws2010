@@ -1,0 +1,120 @@
+P0:There are 16 processes.
+P2: Loading data: (2x27 values).
+P3: Loading data: (2x27 values).
+P7: Loading data: (2x27 values).
+P5: Loading data: (2x27 values).
+P8: Loading data: (2x27 values).
+P11: Loading data: (2x27 values).
+P4: Loading data: (2x27 values).
+P12: Loading data: (2x27 values).
+P10: Loading data: (2x27 values).
+P13: Loading data: (2x27 values).
+P1: Loading data: (2x27 values).
+P6: Loading data: (2x27 values).
+P15: Loading data: (2x27 values).
+P9: Loading data: (2x27 values).
+P14: Loading data: (2x27 values).
+P0: Loading data: (2x27 values).
+P0:processes expanded to #16
+P2: received: 27 15 240 111111111111110000000000000
+P2: Starting calculation
+P1: received: 27 15 257 111111111111111000000000000
+P1: Starting calculation
+P2: My next donator:3
+P1: My next donator:2
+P3: My next donator:4
+P3:Performing a serial job, cuz the data is too small to bother :)
+P4: My next donator:5
+P4:Performing a serial job, cuz the data is too small to bother :)
+P5: received: 27 12 188 111111111110000000000000000
+P5: Starting calculation
+P5: My next donator:6
+P6: received: 27 11 184 111111111100000000000000000
+P6: Starting calculation
+P6: My next donator:7
+P7: received: 27 10 162 111111111000000000000000000
+P7: Starting calculation
+P8: received: 27 9 129 111111110000000000000000000
+P8: Starting calculation
+P7: My next donator:8
+P8: My next donator:9
+P9: received: 27 8 83 111111100000000000000000000
+P9: Starting calculation
+P9: My next donator:10
+P10: received: 27 7 65 111111000000000000000000000
+P10: Starting calculation
+P10: My next donator:11
+P11: received: 27 6 39 111110000000000000000000000
+P11: Starting calculation
+P11: My next donator:12
+P12: received: 27 5 36 111100000000000000000000000
+P12: Starting calculation
+P12: My next donator:13
+P13: received: 27 4 11 111000000000000000000000000
+P13: Starting calculation
+P13: My next donator:14
+P14: received: 27 3 10 110000000000000000000000000
+P14: Starting calculation
+P14: My next donator:15
+P0: My next donator:1
+P15: received: 27 2 2 100000000000000000000000000
+P15: Starting calculation
+P15: My next donator:0
+P0: Token sent to  1
+P0:FINALE received: 27 27 348 011111111001111110011011101  from P5
+P7:OK, here it is, the LOCAL! solution seems to bewith the best value of :2958.
+P2:OK, here it is, the LOCAL! solution seems to bewith the best value of :2779.
+P8:OK, here it is, the LOCAL! solution seems to bewith the best value of :2991.
+P8: sending my best to P0!
+P5:OK, here it is, the LOCAL! solution seems to bewith the best value of :2886.
+P5: sending my best to P0!
+P7: sending my best to P0!
+P6:OK, here it is, the LOCAL! solution seems to bewith the best value of :3019.
+P6: sending my best to P0!
+P0:FINALE received: 27 27 347 111111111111111100011011001  from P1
+P0:FINALE received: 27 27 345 111111111111110110011011001  from P2
+P0:FINALE received: 0 0 0   from P3
+P0:FINALE received: 0 0 0   from P4
+P0:FINALE received: 27 27 347 101111110011111110011111101  from P6
+P9:OK, here it is, the LOCAL! solution seems to bewith the best value of :2913.
+---Node Content:--- (0)
+P0:Vector content: <1 0 1 1 1 1 1 1 0 0 1 1 1 1 1 1 1 0 0 1 1 1 1 1 1 0 1 >
+P12:OK, here it is, the LOCAL! solution seems to bewith the best value of :2974.
+P4:OK, here it is, the LOCAL! solution seems to bewith the best value of :0.
+P11:OK, here it is, the LOCAL! solution seems to bewith the best value of :2858.
+P0:Volume: 347
+P0:Depth: 27
+P0:Expandable: NO
+P0:FINALE received: 27 27 350 111111111001111110011011101  from P7
+P0:FINALE received: 27 27 343 111111110111111110011011101  from P8
+P1:OK, here it is, the LOCAL! solution seems to bewith the best value of :2855.
+P1: sending my best to P0!
+P9: sending my best to P0!
+P3:OK, here it is, the LOCAL! solution seems to bewith the best value of :0.
+P3: sending my best to P0!
+P12: sending my best to P0!
+P0:FINALE received: 27 27 336 111101110011011110111011101  from P9
+P0:FINALE received: 27 27 341 111111010011111110111011101  from P10
+P0:FINALE received: 27 27 349 111110010011111110111111101  from P11
+P2: sending my best to P0!
+P10:OK, here it is, the LOCAL! solution seems to bewith the best value of :2982.
+P4: sending my best to P0!
+P13:OK, here it is, the LOCAL! solution seems to bewith the best value of :2835.
+P0:FINALE received: 27 27 340 111101110111111110011011101  from P12
+P0:FINALE received: 27 27 350 111011010011111110111111101  from P13
+P0:FINALE received: 27 27 348 101101110011111110111011101  from P15
+P15:OK, here it is, the LOCAL! solution seems to bewith the best value of :3015.
+P15: sending my best to P0!
+P0:FINALE received: 27 27 342 110111110111111110011011101  from P14
+P11: sending my best to P0!
+P0:solution with the value of 3019 is:
+---Node Content:--- (0)
+P10: sending my best to P0!
+P0:Vector content: <1 0 1 1 1 1 1 1 0 0 1 1 1 1 1 1 1 0 0 1 1 1 1 1 1 0 1 >
+P0:Volume: 347
+P0:Depth: 27
+P0:Expandable: NO
+P13: sending my best to P0!
+P14:OK, here it is, the LOCAL! solution seems to bewith the best value of :2833.
+Spotrebovany cas je: 279.95
+P14: sending my best to P0!

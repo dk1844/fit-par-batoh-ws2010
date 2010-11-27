@@ -1,0 +1,38 @@
+P0:There are 4 processes.
+P1: Loading data: (2x27 values).
+P3: Loading data: (2x27 values).
+P2: Loading data: (2x27 values).
+P0: Loading data: (2x27 values).
+P0:processes expanded to #4
+P1: received: 27 3 11 111000000000000000000000000
+P0: My next donator:1
+P3: received: 27 2 2 100000000000000000000000000
+P3: Starting calculation
+P1: Starting calculation
+P3: My next donator:0
+P1: My next donator:2
+P2: received: 27 3 10 110000000000000000000000000
+P2: Starting calculation
+P2: My next donator:3
+P0: Token sent to  1
+P1:OK, here it is, the LOCAL! solution seems to bewith the best value of :2991.
+P1: sending my best to P0!
+P2:OK, here it is, the LOCAL! solution seems to bewith the best value of :2918.
+P2: sending my best to P0!
+P3:OK, here it is, the LOCAL! solution seems to bewith the best value of :3019.
+P3: sending my best to P0!
+P0:FINALE received: 27 27 349 001111010111111110011111101  from P2
+P0:FINALE received: 27 27 347 101111110011111110011111101  from P3
+---Node Content:--- (0)
+P0:Vector content: <1 0 1 1 1 1 1 1 0 0 1 1 1 1 1 1 1 0 0 1 1 1 1 1 1 0 1 >
+P0:Volume: 347
+P0:Depth: 27
+P0:Expandable: NO
+P0:FINALE received: 27 27 343 111111110111111110011011101  from P1
+P0:solution with the value of 3019 is:
+---Node Content:--- (0)
+P0:Vector content: <1 0 1 1 1 1 1 1 0 0 1 1 1 1 1 1 1 0 0 1 1 1 1 1 1 0 1 >
+P0:Volume: 347
+P0:Depth: 27
+P0:Expandable: NO
+Spotrebovany cas je: 263.855
