@@ -1,0 +1,12 @@
+P0:There are 2 processes.
+StackType: STACK 
+for init division purposes:StackType: QUEUE 
+StackType: STACK 
+P0:solution with the value of 3538 is:
+---Node Content:--- (0)
+P0:Vector content: <1 1 1 1 1 1 0 1 1 1 1 1 1 1 1 1 1 1 0 1 1 1 1 0 0 0 1 >
+P0:Volume: 348
+P0:Depth: 27
+P0:Expandable: NO
+P1:LOCAL best value is: 3409.
+Spotrebovany cas je: 267.985
