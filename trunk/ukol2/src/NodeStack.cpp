@@ -69,3 +69,9 @@ bool NodeStack::isBehaviorQueue() {
 bool NodeStack::isBehaviorStack() {
     return (_behavior == BEHAVIOR_STACK);
 }
+
+void NodeStack::printStackBehavior(){
+
+        printf("StackType: %s \n", this->getBehaviorAsText());
+
+    }
