@@ -55,6 +55,13 @@ int NodeStack::getBehavior() {
     return _behavior;
 }
 
+const char * NodeStack::getBehaviorAsText(){
+    if (_behavior == BEHAVIOR_QUEUE) {
+        return "QUEUE";
+    }
+    return "STACK";
+}
+
 bool NodeStack::isBehaviorQueue() {
     return (_behavior == BEHAVIOR_QUEUE);
 }

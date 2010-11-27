@@ -74,6 +74,13 @@ public:
      */
     bool isBehaviorQueue();
 
+    const char * getBehaviorAsText();
+
+    void printStackBehavior(){
+
+        printf("StackType: %s \n", this->getBehaviorAsText());
+        
+    }
 
 
 private:
