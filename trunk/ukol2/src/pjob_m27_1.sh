@@ -63,7 +63,7 @@ INFINIBAND="true"
 # | Parallel program with arguments.                                          |
 # |                                                                           |
 #  ===========================================================================
-MY_PARALLEL_PROGRAM="./main measure27.txt"
+MY_PARALLEL_PROGRAM="./main measure27-1.txt"
 
 
 
