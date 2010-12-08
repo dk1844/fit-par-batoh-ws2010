@@ -1,0 +1,12 @@
+P0:There are 1 processes.
+StackType: STACK 
+for init division purposes:StackType: QUEUE 
+StackType: STACK 
+P0:Performing a serial job.
+P0:solution with the value of 1995 is:
+---Node Content:--- (0)
+P0:Vector content: <1 1 1 0 1 1 1 1 1 1 1 1 0 1 0 0 0 1 0 1 >
+P0:Volume: 250
+P0:Depth: 20
+P0:Expandable: NO
+Spotrebovany cas je: 3.42538
