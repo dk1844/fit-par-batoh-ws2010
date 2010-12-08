@@ -1,0 +1,42 @@
+P0:There are 32 processes.
+StackType: STACK 
+for init division purposes:StackType: QUEUE 
+StackType: STACK 
+P4:LOCAL best value is: 3314.
+P8:LOCAL best value is: 3334.
+P6:LOCAL best value is: 3264.
+P9:LOCAL best value is: 3074.
+P7:LOCAL best value is: 3136.
+P1:LOCAL best value is: 3018.
+P2:LOCAL best value is: 3242.
+P11:LOCAL best value is: 3146.
+P10:LOCAL best value is: 3317.
+P5:LOCAL best value is: 3021.
+P3:LOCAL best value is: 3114.
+P14:LOCAL best value is: 3339.
+P30:LOCAL best value is: 3534.
+P13:LOCAL best value is: 3096.
+P28:LOCAL best value is: 3516.
+P25:LOCAL best value is: 3269.
+P26:LOCAL best value is: 3512.
+P27:LOCAL best value is: 3273.
+P24:LOCAL best value is: 3462.
+P29:LOCAL best value is: 3291.
+P18:LOCAL best value is: 3437.
+P16:LOCAL best value is: 3409.
+P21:LOCAL best value is: 3261.
+P17:LOCAL best value is: 3239.
+P19:LOCAL best value is: 3311.
+P31:LOCAL best value is: 3295.
+P20:LOCAL best value is: 3482.
+P12:LOCAL best value is: 3389.
+P22:LOCAL best value is: 3459.
+P15:LOCAL best value is: 3168.
+P23:LOCAL best value is: 3331.
+P0:solution with the value of 3538 is:
+---Node Content:--- (0)
+P0:Vector content: <1 1 1 1 1 1 0 1 1 1 1 1 1 1 1 1 1 1 0 1 1 1 1 0 0 0 1 >
+P0:Volume: 348
+P0:Depth: 27
+P0:Expandable: NO
+Spotrebovany cas je: 16.06
