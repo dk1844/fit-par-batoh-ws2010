@@ -1,0 +1,1 @@
+Solving the knapsack problem using a B'n'B method.
